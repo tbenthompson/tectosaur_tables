@@ -8,8 +8,7 @@ import tectosaur.geometry as geometry
 from tectosaur.interpolate import cheb, cheb_wts, barycentric_evalnd, to_interval
 from tectosaur.limit import limit, richardson_limit
 
-import cppimport
-adaptive_integrate = cppimport.imp('adaptive_integrate')
+from tectosaur_tables.gpu_integrator import coincident_integral, adjacent_integral
 
 # tol = 0.0001
 # rho_order = 100
@@ -39,8 +38,8 @@ K = "H"
 rho_order = 50
 theta_order = 50
 starting_eps = 0.001
-n_eps = 1
-tol = 1e-4
+n_eps = 6
+tol = 1e-6
 n_A = 2
 n_B = 2
 n_pr = 2
@@ -52,7 +51,6 @@ filename = (
 print(filename)
 
 all_eps = starting_eps * 2.0 ** -np.arange(n_eps)
-rho_gauss = quad.gaussxw(rho_order)
 
 def eval(pt):
     Ahat,Bhat,prhat = pt
@@ -68,13 +66,7 @@ def eval(pt):
     integrals = []
     for eps in all_eps:
         print('running: ' + str((pt, eps)))
-        rho_q = quad.sinh_transform(rho_gauss, -1, eps * 2)
-        theta_q = quad.gaussxw(theta_order)
-        res = adaptive_integrate.integrate_coincident(
-            K, tri, tol, eps, 1.0, pr,
-            rho_q[0].tolist(), rho_q[1].tolist(),
-            theta_q[0].tolist(), theta_q[1].tolist()
-        )
+        res = coincident_integral(tol, K, tri, eps, 1.0, pr, rho_order, theta_order)
         print(res[0])
         integrals.append(res)
     return integrals
