@@ -29,9 +29,9 @@ starting_eps = 1e-5
 n_eps = 4
 K = "H"
 
-n_A = 8
-n_B = 8
-n_pr = 8
+n_A = 10
+n_B = 10
+n_pr = 10
 
 # play parameters
 # K = "H"
