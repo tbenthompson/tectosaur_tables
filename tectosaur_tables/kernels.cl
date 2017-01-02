@@ -3,6 +3,7 @@ def dn(dim):
     return ['x', 'y', 'z'][dim]
 float_type = 'double'
 %>
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 <%def name="geometry_fncs()">
 void vec_cross(${float_type} x[3], ${float_type} y[3], ${float_type} out[3]) {
