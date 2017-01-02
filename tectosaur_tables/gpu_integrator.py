@@ -16,7 +16,7 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
     def integrand(x):
         n_x = x.shape[0]
         integrand.total_n_x += n_x
-        # print(integrand.total_n_x)
+        print(integrand.total_n_x)
         out = np.zeros((n_x,81))
 
         def call_integrator(start_idx, end_idx):

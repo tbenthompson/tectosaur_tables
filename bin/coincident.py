@@ -33,16 +33,18 @@ n_A = 10
 n_B = 10
 n_pr = 10
 
+n_gpus = 1
+
 # play parameters
-# K = "H"
-# rho_order = 50
-# theta_order = 50
-# starting_eps = 0.001
-# n_eps = 6
-# integration_tol = 1e-6
-# n_A = 2
-# n_B = 2
-# n_pr = 2
+K = "H"
+rho_order = 50
+theta_order = 50
+starting_eps = 0.01
+n_eps = 4
+integration_tol = 1e-4
+n_A = 2
+n_B = 2
+n_pr = 2
 
 filename = (
     '%s_%i_%f_%i_%f_%i_%i_%i_coincidenttable.npy' %
@@ -92,7 +94,8 @@ def test_f(results, eval_fnc, pts, wts):
         # ))
 
 def build_tables(eval_fnc, pts, wts):
-    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool(n_gpus)
+    # results = np.array(pool.map(eval_fnc, pts.tolist()))
     results = np.array([eval_fnc(p) for p in pts.tolist()])
     np.save(filename, results)
     np.random.seed(15)
