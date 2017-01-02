@@ -22,16 +22,16 @@ from tectosaur_tables.gpu_integrator import coincident_integral, adjacent_integr
 # K = "T"
 # K = "A"
 
-tol = 1e-8
-rho_order = 80
-theta_order = 80
+K = "H"
+tol = 1e-7
+rho_order = 70
+theta_order = 70
 starting_eps = 1e-5
 n_eps = 4
-K = "H"
 
-n_A = 10
-n_B = 10
-n_pr = 10
+n_A = 8
+n_B = 8
+n_pr = 8
 
 # play parameters
 # K = "H"
@@ -52,7 +52,9 @@ print(filename)
 
 all_eps = starting_eps * 2.0 ** -np.arange(n_eps)
 
-def eval(pt):
+def eval(i, pt):
+    for j in range(10):
+        print(i)
     Ahat,Bhat,prhat = pt
     # From symmetry and enforcing that the edge (0,0)-(1,0) is always longest,
     # A,B can be limited to (0,0.5)x(0,1).
@@ -93,7 +95,7 @@ def test_f(results, eval_fnc, pts, wts):
 
 def build_tables(eval_fnc, pts, wts):
     pool = multiprocessing.Pool()
-    results = np.array([eval_fnc(p) for p in pts.tolist()])
+    results = np.array([eval_fnc(i, p) for i, p in enumerate(pts.tolist())])
     np.save(filename, results)
     np.random.seed(15)
     for i in range(3):

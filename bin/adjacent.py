@@ -16,22 +16,23 @@ adaptive_integrate = cppimport.imp('adaptive_integrate')
 
 # H parameters
 K = "H"
-rho_order = 100
-starting_eps = 0.0001
+tol = 1e-7
+rho_order = 70
+theta_order = 70
+starting_eps = 1e-5
 n_eps = 4
-tol = 0.0001
 n_pr = 8
 n_theta = 8
 
 # play parameters
-K = "H"
-rho_order = 40
-theta_order = 28
-starting_eps = 1e-4
-n_eps = 2
-tol = 1e-6
-n_pr = 2
-n_theta = 2
+# K = "H"
+# rho_order = 40
+# theta_order = 28
+# starting_eps = 1e-4
+# n_eps = 2
+# tol = 1e-6
+# n_pr = 2
+# n_theta = 2
 
 filename = (
     '%s_%i_%f_%i_%f_%i_%i_adjacenttable.npy' %

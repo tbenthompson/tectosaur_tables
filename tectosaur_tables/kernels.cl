@@ -1,7 +1,12 @@
 <%
 def dn(dim):
     return ['x', 'y', 'z'][dim]
-float_type = 'double'
+import numpy as np
+from tectosaur_tables.gpu_integrator import float_type as np_float_type
+if np_float_type == np.float32:
+    float_type = 'float'
+else:
+    float_type = 'double'
 %>
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
@@ -306,8 +311,6 @@ obsxhat / (costheta + sintheta);
 __kernel
 void ${type}_integrals${k_name}(__global ${float_type}* result, int chunk, 
     __global ${float_type}* pts, 
-    int n_rho, __global ${float_type}* rho_qx, __global ${float_type}* rho_qw, 
-    int n_theta, __global ${float_type}* theta_qx, __global ${float_type}* theta_qw, 
     __global ${float_type}* in_obs_tri, __global ${float_type}* in_src_tri,
     ${float_type} eps, ${float_type} G, ${float_type} nu)
 </%def>
@@ -399,7 +402,7 @@ ${func_def("coincident", k_name)}
     ${integral_setup("in_obs_tri", "in_src_tri")}
     ${eval_hatvars()}
 
-    for (int oti = 0; oti < n_theta; oti++) {
+    for (int oti = 0; oti < ${theta_q[0].shape[0]}; oti++) {
         ${float_type} thetahat = (theta_qx[oti] + 1) / 2;
 
         ${float_type} thetalow;
@@ -430,7 +433,7 @@ ${func_def("coincident", k_name)}
             rhohigh = ${co_rhohigh(2)}
         }
 
-        for (int ri = 0; ri < n_rho; ri++) {
+        for (int ri = 0; ri < ${rho_q[0].shape[0]}; ri++) {
             ${rho_quad_eval()}
 
             ${float_type} srcxhat = obsxhat + rho * costheta;
@@ -455,7 +458,7 @@ ${func_def("adjacent", k_name)}
     ${integral_setup("in_obs_tri", "in_src_tri")}
     ${eval_hatvars()}
 
-    for (int oti = 0; oti < n_theta; oti++) {
+    for (int oti = 0; oti < ${theta_q[0].shape[0]}; oti++) {
         ${float_type} thetahat = (theta_qx[oti] + 1) / 2;
 
         ${float_type} thetalow;
@@ -481,7 +484,7 @@ ${func_def("adjacent", k_name)}
             rhohigh = ${adj_rhohigh(1)}
         }
 
-        for (int ri = 0; ri < n_rho; ri++) {
+        for (int ri = 0; ri < ${rho_q[0].shape[0]}; ri++) {
             ${rho_quad_eval()}
 
             ${float_type} srcxhat = rho * costheta + (1 - obsxhat);
@@ -499,6 +502,34 @@ ${func_def("adjacent", k_name)}
     }
 }
 </%def>
+
+__constant ${float_type} rho_qx[${rho_q[0].shape[0]}] = {
+    % for x in rho_q[0][:-1]:
+        ${x},
+    % endfor
+    ${rho_q[1][-1]}
+};
+
+__constant ${float_type} rho_qw[${rho_q[0].shape[0]}] = {
+    % for w in rho_q[1][:-1]:
+    ${w},
+    % endfor
+    ${rho_q[1][-1]}
+};
+
+__constant ${float_type} theta_qx[${theta_q[0].shape[0]}] = {
+    % for x in theta_q[0][:-1]:
+    ${x},
+    % endfor
+    ${theta_q[0][-1]}
+};
+
+__constant ${float_type} theta_qw[${theta_q[0].shape[0]}] = {
+    % for w in theta_q[1][:-1]:
+    ${w},
+    % endfor
+    ${theta_q[1][-1]}
+};
 
 ${geometry_fncs()}
 
