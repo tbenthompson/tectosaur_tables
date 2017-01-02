@@ -1,4 +1,3 @@
-import time
 import multiprocessing
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,10 +22,11 @@ from tectosaur_tables.gpu_integrator import coincident_integral, adjacent_integr
 # K = "T"
 # K = "A"
 
-tol = 1e-5
-rho_order = 100
+tol = 1e-8
+rho_order = 80
+theta_order = 80
 starting_eps = 1e-5
-n_eps = 3
+n_eps = 4
 K = "H"
 
 n_A = 8
@@ -34,15 +34,15 @@ n_B = 8
 n_pr = 8
 
 # play parameters
-K = "H"
-rho_order = 50
-theta_order = 50
-starting_eps = 0.001
-n_eps = 6
-tol = 1e-6
-n_A = 2
-n_B = 2
-n_pr = 2
+# K = "H"
+# rho_order = 50
+# theta_order = 50
+# starting_eps = 0.001
+# n_eps = 6
+# integration_tol = 1e-6
+# n_A = 2
+# n_B = 2
+# n_pr = 2
 
 filename = (
     '%s_%i_%f_%i_%f_%i_%i_%i_coincidenttable.npy' %
@@ -62,7 +62,6 @@ def eval(pt):
 
     tri = [[0,0,0],[1,0,0],[A,B,0.0]]
 
-    start = time.time()
     integrals = []
     for eps in all_eps:
         print('running: ' + str((pt, eps)))
@@ -101,21 +100,6 @@ def build_tables(eval_fnc, pts, wts):
         test_f(results, eval_fnc, pts, wts)
 
 if __name__ == '__main__':
-    print("")
-    print("")
-    print("")
-    print("")
-    print("GO")
-    integrals = eval([0.0, 1.0, 0.5])
-    print(limit(all_eps, integrals, True))
-    print("DONE")
-    print("")
-    print("")
-    print("")
-    print("")
-    import sys;sys.exit()
-
-
     Ahats = cheb(-1, 1, n_A)
     Bhats = cheb(-1, 1, n_B)
     prhats = cheb(-1, 1, n_pr)

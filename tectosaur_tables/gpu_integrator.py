@@ -30,7 +30,7 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
                 np.int32(theta_q[0].shape[0]), gpu_tqx.data, gpu_tqw.data,
                 gpu_obs_tri.data, gpu_src_tri.data,
                 gpu.float_type(eps), gpu.float_type(sm), gpu.float_type(pr)
-            );
+            )
             out[start_idx:end_idx] = gpu_result.get()
 
         call_size = 2 ** 12
