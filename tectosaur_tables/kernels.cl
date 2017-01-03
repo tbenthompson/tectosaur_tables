@@ -504,7 +504,7 @@ __constant ${float_type} rho_qx[${rho_q[0].shape[0]}] = {
     % for x in rho_q[0][:-1]:
         ${x},
     % endfor
-    ${rho_q[1][-1]}
+    ${rho_q[0][-1]}
 };
 
 __constant ${float_type} rho_qw[${rho_q[0].shape[0]}] = {
