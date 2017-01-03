@@ -36,11 +36,12 @@ n_gpus = 1
 
 # play parameters
 # K = "H"
-# rho_order = 50
-# theta_order = 50
-# starting_eps = 0.01
-# n_eps = 4
-# tol = 1e-4
+# tol = 1e-2
+# rho_order = 30
+# theta_order = 30
+# starting_eps = 1e-1
+# n_eps = 3
+#
 # n_A = 2
 # n_B = 2
 # n_pr = 2
@@ -71,28 +72,24 @@ def eval(i, pt):
         res = coincident_integral(tol, K, tri, eps, 1.0, pr, rho_order, theta_order)
         print(res[0])
         integrals.append(res)
-    return integrals
+    integrals = np.array(integrals)
+    lim = take_limits(integrals, True)
+    return lim
 
-def take_limits(integrals):
-    out = np.empty(81)
-    remove_divergence = False
+def take_limits(integrals, remove_divergence):
+    out = np.empty((81, 2))
     for i in range(81):
         out[i] = limit(all_eps, integrals[:, i], remove_divergence)
-    if not remove_divergence:
-        np.testing.assert_almost_equal(out, richardson_limit(2.0, integrals))
     return out
 
 def test_f(results, eval_fnc, pts, wts):
-    limits = np.empty((results.shape[0], results.shape[2]))
-    for i in range(results.shape[0]):
-        limits[i,:] = take_limits(results[i,:,:])
     P = np.random.rand(pts.shape[1]) * 2 - 1.0
-    correct = take_limits(np.array(eval_fnc(P)))
+    correct = eval_fnc(0, P)[:,0]
     for i in range(81):
-        interp = barycentric_evalnd(pts, wts, limits[:,i], np.array([P]))[0]
-        # print("testing:  " + str(i) + "     " + str(
-        #     (correct[i], interp, np.abs((correct[i] - interp) / correct[i]), correct[i] - interp)
-        # ))
+        interp = barycentric_evalnd(pts, wts, results[:,i,0], np.array([P]))[0]
+        print("testing:  " + str(i) + "     " + str(
+            (correct[i], interp, np.abs((correct[i] - interp) / correct[i]), correct[i] - interp)
+        ))
 
 def build_tables(eval_fnc, pts, wts):
     results = np.array([eval_fnc(i, p) for i, p in enumerate(pts.tolist())])
