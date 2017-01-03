@@ -25,7 +25,7 @@ K = "H"
 tol = 1e-7
 rho_order = 70
 theta_order = 70
-starting_eps = 1e-5
+starting_eps = 1e-4
 n_eps = 4
 
 n_A = 8
@@ -35,15 +35,15 @@ n_pr = 8
 n_gpus = 1
 
 # play parameters
-K = "H"
-rho_order = 50
-theta_order = 50
-starting_eps = 0.01
-n_eps = 4
-integration_tol = 1e-4
-n_A = 2
-n_B = 2
-n_pr = 2
+# K = "H"
+# rho_order = 50
+# theta_order = 50
+# starting_eps = 0.01
+# n_eps = 4
+# tol = 1e-4
+# n_A = 2
+# n_B = 2
+# n_pr = 2
 
 filename = (
     '%s_%i_%f_%i_%f_%i_%i_%i_coincidenttable.npy' %

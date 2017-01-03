@@ -6,7 +6,7 @@ from tectosaur.util.timer import Timer
 import cppimport
 adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate').adaptive_integrate
 
-float_type = np.float32
+float_type = np.float64
 def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk):
     module = gpu.ocl_load_gpu(
         'tectosaur_tables/kernels.cl',
