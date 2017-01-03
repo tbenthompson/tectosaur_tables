@@ -368,9 +368,6 @@ ${float_type} jacobian = rho_qw[ri] * rho * rhohigh * outer_jacobian;
     ${float_type} Dy = yy - xy; 
     ${float_type} Dz = yz - xz;
     ${float_type} r2 = Dx * Dx + Dy * Dy + Dz * Dz;
-    if (r2 == 0.0) {
-        continue;
-    }
 </%def>
 
 <%def name="add_to_sum()">
