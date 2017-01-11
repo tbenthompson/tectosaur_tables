@@ -3,7 +3,7 @@ import tectosaur
 setup_pybind11(cfg)
 cfg['compiler_args'].extend(['-std=c++14', '-O3', '-Wall'])
 cfg['sources'] = ['cubature/hcubature.c', 'cubature/pcubature.c']
-cfg.get('include_dirs', []).append(tectosaur.include_dir)
+cfg.get('include_dirs', []).append(tectosaur.source_dir)
 %>
 
 #include <pybind11/pybind11.h>

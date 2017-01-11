@@ -8,7 +8,7 @@ adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate').adapti
 
 float_type = np.float64
 def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk):
-    module = gpu.ocl_load_gpu(
+    module = gpu.load_gpu(
         'tectosaur_tables/kernels.cl',
         tmpl_args = dict(rho_q = rho_q, theta_q = theta_q)
     )
@@ -29,7 +29,7 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
             gpu_pts = gpu.to_gpu(x[start_idx:end_idx,:], float_type)
             gpu_result = gpu.empty_gpu((n_items, 81), float_type)
             fnc(
-                gpu.ocl_gpu_queue, (n_items,), None,
+                gpu.gpu_queue, (n_items,), None,
                 gpu_result.data, np.int32(chunk), gpu_pts.data,
                 gpu_obs_tri.data, gpu_src_tri.data,
                 float_type(eps), float_type(sm), float_type(pr)
@@ -62,6 +62,7 @@ def general_integral(tol, type, K, obs_tri, src_tri, eps, sm, pr, rho_order, the
             ),
             [0,0], [1,1], tol
         )
+        print(chunk_res[0][0])
         res += chunk_res[0]
     return np.array(res)
 

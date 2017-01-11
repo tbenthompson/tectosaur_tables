@@ -22,7 +22,7 @@ from tectosaur_tables.gpu_integrator import coincident_integral, adjacent_integr
 # K = "A"
 
 K = "H"
-tol = 1e-7
+tol = 1e-8
 rho_order = 80
 theta_order = 80
 starting_eps = 1e-4
