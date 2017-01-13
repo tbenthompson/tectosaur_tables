@@ -17,10 +17,15 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
     gpu_src_tri = gpu.to_gpu(np.array(src_tri).flatten(), float_type)
 
     def integrand(x):
-        t = Timer()
+        # import matplotlib.pyplot as plt
+        # plt.plot(x[:,0], x[:,1], '.')
+        # plt.xlim([-0.1,1.1])
+        # plt.ylim([-0.1,1.1])
+        # plt.show()
+        t = Timer(silent = True)
         n_x = x.shape[0]
         integrand.total_n_x += n_x
-        print(integrand.total_n_x)
+        # print(integrand.total_n_x)
         out = np.zeros((n_x,81))
         t.report("start")
 
