@@ -17,7 +17,7 @@ def coincident_quad(eps, n_outer_sing, n_outer_smooth, chunk):
 
     return np.array(pts), np.array(wts)
 
-def general_fixed_integral(outer_order, type, K, obs_tri, src_tri,
+def general_fixed(outer_order, type, K, obs_tri, src_tri,
         eps, sm, pr, rho_order, theta_order):
     rho_gauss = quad.gaussxw(rho_order)
     rho_q = quad.sinh_transform(rho_gauss, -1, eps * 2)
@@ -34,14 +34,14 @@ def general_fixed_integral(outer_order, type, K, obs_tri, src_tri,
         res += chunk_res
     return np.array(res)
 
-def coincident_fixed_integral(outer_order, K, tri, eps, sm, pr, rho_order, theta_order):
-    return general_fixed_integral(
+def coincident_fixed(outer_order, K, tri, eps, sm, pr, rho_order, theta_order):
+    return general_fixed(
         outer_order, 'coincident', K, tri, tri, eps, sm, pr, rho_order, theta_order
     )
 
-def adjacent_fixed_integral(outer_order, K, obs_tri, src_tri, eps,
+def adjacent_fixed(outer_order, K, obs_tri, src_tri, eps,
         sm, pr, rho_order, theta_order):
-    return general_fixed_integral(
+    return general_fixed(
         outer_order, 'adjacent', K, obs_tri, src_tri, eps, sm, pr, rho_order, theta_order
     )
 

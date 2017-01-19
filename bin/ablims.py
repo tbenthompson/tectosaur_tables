@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
 
-angle_lim = 25
+angle_lim = int(input("angle limit: "))
 
 def lawcos(a, b, c):
     return np.arccos((a**2 + b**2 - c**2) / (2*a*b))
@@ -36,7 +36,7 @@ def shouldfilter(a, b):
 avs = []
 bvs = []
 
-for i in range(20000):
+for i in range(200000):
     # choose random a,b where a is in [0, 1] and b is in [0, 1]
     params = np.random.rand(2)
     a = params[0] * 0.5
@@ -49,7 +49,9 @@ for i in range(20000):
 minA = np.min(avs)
 minB = np.min(bvs)
 maxB = np.max(bvs)
-print(minA, minB, maxB)
+print('minlegalA = ' + str(minA * 0.99))
+print('minlegalB = ' + str(minB * 0.99))
+print('maxlegalB = ' + str(maxB * 1.01))
 
 plt.plot(avs, bvs, '.')
 plt.xlim([0,0.5])

@@ -67,7 +67,7 @@ def general_integral(tol, type, K, obs_tri, src_tri, eps, sm, pr, rho_order, the
             ),
             [0,0], [1,1], tol
         )
-        print(chunk_res[0][0])
+        # print(chunk_res[0][0])
         res += chunk_res[0]
     return np.array(res)
 
