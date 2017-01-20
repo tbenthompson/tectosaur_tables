@@ -120,7 +120,8 @@ if __name__ == '__main__':
     #     build_tables(eval, p)
 
     # p = BuildParams("H", 1e-1, 250, False, 100, 100, 10 ** -1, 12, 1, 1, 1)
-    for n_A, n_B, n_pr in [(25, 25, 5)]:
+    for n_A, n_B, n_pr in [(25, 15, 12), (15, 25, 12), (25, 12, 12), (12, 25, 12)]:
         p = BuildParams("H", 1e-3, 40, False, 50, 50, 1e-1, 2, n_A, n_B, n_pr)
         build_tables(eval, p)
+        plt.savefig(str(p.n_A) + '_' + str(p.n_B) + '_' + str(p.n_pr) + '.pdf')
     plt.show()
