@@ -9,7 +9,7 @@ adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate').adapti
 float_type = np.float64
 def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk):
     module = gpu.load_gpu(
-        'tectosaur_tables/kernels.cl',
+        'kernels.cl', tmpl_dir = 'tectosaur_tables',
         tmpl_args = dict(rho_q = rho_q, theta_q = theta_q)
     )
     fnc = getattr(module, type + '_integrals' + K)

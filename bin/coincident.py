@@ -36,6 +36,7 @@ class BuildParams:
         self.all_eps = starting_eps * 2.0 ** -np.arange(n_eps)
 
 
+        # FOR A MIN ANGLE OF 10 DEGREES
         self.minlegalA = 0.0160559624778
         self.minlegalB = 0.0881595061826
         self.maxlegalB = 0.873575060826
