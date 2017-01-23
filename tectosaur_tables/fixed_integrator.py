@@ -3,7 +3,7 @@ import numpy as np
 import tectosaur.quadrature as quad
 from tectosaur_tables.gpu_integrator import make_gpu_integrator
 
-def coincident_quad(eps, n_outer_sing, n_outer_smooth, chunk):
+def outer_quad(eps, n_outer_sing, n_outer_smooth, chunk):
     q1 = quad.aimi_diligenti(quad.gaussxw(n_outer_smooth), 3, 3)
     q2 = quad.aimi_diligenti(quad.gaussxw(n_outer_smooth), 3, 3)
     pts = []
@@ -25,7 +25,7 @@ def general_fixed(outer_order, type, K, obs_tri, src_tri,
     n_chunks = 3 if type == 'coincident' else 2
     res = np.zeros(81)
     for chunk in range(n_chunks):
-        q_rule = coincident_quad(eps, outer_order, outer_order, chunk)
+        q_rule = outer_quad(eps, outer_order, outer_order, chunk)
         integrator = make_gpu_integrator(
             type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk
         )

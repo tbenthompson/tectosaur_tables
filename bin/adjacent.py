@@ -8,7 +8,7 @@ from tectosaur.interpolate import cheb, cheb_wts, to_interval, barycentric_evaln
 from tectosaur.limit import limit, richardson_limit
 
 from tectosaur_tables.gpu_integrator import coincident_integral, adjacent_integral
-from coincident import build_tables
+from build_tables import build_tables
 
 # H parameters
 K = "H"
