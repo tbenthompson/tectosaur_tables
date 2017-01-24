@@ -46,10 +46,21 @@ def eval(i, pt, p):
     return np.array(integrals)
 
 if __name__ == '__main__':
-    p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, 8, 8)
-    p.n_test_tris = 10
-    build_tables(eval, p)
-    plt.savefig('adj_8_8.pdf')
+    n_phi = 20
+    for n_pr in range(2, 12):
+        p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, n_phi, n_pr)
+        p.n_test_tris = 10
+        build_tables(eval, p)
+        plt.savefig('adj_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
+        # plt.show()
+
+    n_pr = 12
+    for n_phi in range(2, 30, 3):
+        p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, n_phi, n_pr)
+        p.n_test_tris = 10
+        build_tables(eval, p)
+        plt.savefig('adj_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
+
     plt.show()
 
 # H parameters
