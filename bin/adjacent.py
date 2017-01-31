@@ -5,7 +5,7 @@ from tectosaur.interpolate import to_interval
 from tectosaur.table_lookup import adjacent_interp_pts_wts
 
 from tectosaur_tables.fixed_integrator import adjacent_fixed
-from build_tables import build_tables, safe_fixed_quad, TableParams
+from build_tables import build_tables, safe_fixed_quad, TableParams, take_limits
 
 
 def make_adjacent_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
@@ -43,25 +43,37 @@ def eval(i, pt, p):
         I = lambda nq: adjacent_fixed(nq, p.K, tri1, tri2, eps, 1.0, pr, p.n_rho, p.n_theta)
         res = safe_fixed_quad(I, p)
         integrals.append(res)
+        if len(integrals) > 1:
+            lim = take_limits(np.array(integrals), True, p.all_eps[:len(integrals)])[0,0]
+            print("running limit: " + str(lim))
+            if len(integrals) > 2:
+                err = np.abs((old_lim - lim) / lim)
+                print("lim err: " + str(err))
+            old_lim = lim
+
     return np.array(integrals)
 
 if __name__ == '__main__':
-    n_phi = 20
-    for n_pr in range(2, 12):
-        p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, n_phi, n_pr)
-        p.n_test_tris = 10
-        build_tables(eval, p)
-        plt.savefig('adj_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
-        # plt.show()
-
-    n_pr = 12
-    for n_phi in range(2, 30, 3):
-        p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, n_phi, n_pr)
-        p.n_test_tris = 10
-        build_tables(eval, p)
-        plt.savefig('adj_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
-
+    p = make_adjacent_params('H', 1e-6, 350, True, 150, 150, 1e-1, 12, 1, 1)
+    p.n_test_tris = 0
+    build_tables(eval, p)
     plt.show()
+
+
+    # n_phi = 20
+    # for n_pr in range(2, 12):
+    #     p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, n_phi, n_pr)
+    #     p.n_test_tris = 10
+    #     build_tables(eval, p)
+    #     plt.savefig('adj_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
+    #     # plt.show()
+    # n_pr = 12
+    # for n_phi in range(2, 30, 3):
+    #     p = make_adjacent_params('H', 1e-3, 40, True, 50, 50, 1e-1, 2, n_phi, n_pr)
+    #     p.n_test_tris = 10
+    #     build_tables(eval, p)
+    #     plt.savefig('adj_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
+    # plt.show()
 
 # H parameters
 # K = "H"

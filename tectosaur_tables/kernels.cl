@@ -277,23 +277,23 @@ __constant Real rho_qx[${rho_q[0].shape[0]}] = {
     ${rho_q[0][-1]}
 };
 
-__constant Real rho_qw[${rho_q[0].shape[0]}] = {
+__constant Real rho_qw[${rho_q[1].shape[0]}] = {
     % for w in rho_q[1][:-1]:
-    ${w},
+        ${w},
     % endfor
     ${rho_q[1][-1]}
 };
 
 __constant Real theta_qx[${theta_q[0].shape[0]}] = {
     % for x in theta_q[0][:-1]:
-    ${x},
+        ${x},
     % endfor
     ${theta_q[0][-1]}
 };
 
-__constant Real theta_qw[${theta_q[0].shape[0]}] = {
+__constant Real theta_qw[${theta_q[1].shape[0]}] = {
     % for w in theta_q[1][:-1]:
-    ${w},
+        ${w},
     % endfor
     ${theta_q[1][-1]}
 };

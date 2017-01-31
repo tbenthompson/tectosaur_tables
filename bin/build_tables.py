@@ -6,7 +6,7 @@ from tectosaur.limit import limit
 
 class TableParams:
     def __init__(self, K, tol, low_nq, check_quad_error, n_rho, n_theta,
-            starting_eps, n_eps, interp_params, pts, wts):
+            starting_eps, n_eps, interp_params, pts, wts, eps_step = 2.0):
 
         self.K = K
         self.tol = tol
@@ -20,7 +20,7 @@ class TableParams:
         self.pts = pts
         self.wts = wts
 
-        self.all_eps = starting_eps * 2.0 ** -np.arange(n_eps)
+        self.all_eps = starting_eps * eps_step ** -np.arange(n_eps)
 
         # FOR A MIN ANGLE OF 10 DEGREES
         self.min_angle = 10
