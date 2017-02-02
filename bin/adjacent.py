@@ -54,7 +54,7 @@ def eval(i, pt, p):
     return np.array(integrals)
 
 if __name__ == '__main__':
-    p = make_adjacent_params('H', 1e-6, 350, True, 150, 150, 1e-1, 12, 1, 1)
+    p = make_adjacent_params('H', 1e-6, 450, True, 250, 250, 1e-1 / 32, 8, 1, 1)
     p.n_test_tris = 0
     build_tables(eval, p)
     plt.show()

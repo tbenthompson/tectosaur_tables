@@ -22,7 +22,11 @@ def make_coincident_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
     )
     return p
 
+
+max_lim_err = 0
 def eval(i, pt, p):
+    global max_lim_err
+
     for j in range(3):
         print("")
     print("starting integral: " + str(i))
@@ -49,20 +53,24 @@ def eval(i, pt, p):
             lim = take_limits(np.array(integrals), True, p.all_eps[:len(integrals)])[0,0]
             print("running limit: " + str(lim))
             if len(integrals) > 2:
-                err = np.abs((old_lim - lim) / lim)
-                print("lim err: " + str(err))
+                lim_err = np.abs((old_lim - lim) / lim)
+                print("lim err: " + str(lim_err))
             old_lim = lim
+
+    max_lim_err = max(lim_err, max_lim_err)
+    print("runing max lim err: " + str(max_lim_err))
 
     return np.array(integrals)
 
 def final_table():
-    p = make_coincident_params("H", 1e-6, 150, True, 75, 75, 1e-1 / 32, 6, 12, 17, 9)
+    p = make_coincident_params("H", 1e-6, 200, False, 100, 180, 1e-1 / 32, 6, 12, 17, 9)
     p.n_test_tris = 100
     build_tables(eval, p)
     plt.save_fig('final_table_err.pdf')
 
 if __name__ == '__main__':
     final_table()
+
     # p = CoincidentParams("U", 1e-8, 80, 80, 80, 1e-4, 4, 8, 8, 8)
     # p = CoincidentParams("T", 1e-8, 80, 80, 80, 1e-4, 4, 8, 8, 8)
     # p = CoincidentParams("H", 1e-8, 80, 80, 80, 1e-4, 4, 12, 17, 9)
