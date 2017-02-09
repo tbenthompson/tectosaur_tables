@@ -59,10 +59,9 @@ def test_f(results, eval_fnc, p):
     return rel_err
 
 def build_tables(eval_fnc, p, run_test = True):
-
     results = []
     for i, pt in enumerate(p.pts.tolist()):
-        results.append(take_limits(eval_fnc(i, pt, p), True, p.all_eps))
+        results.append(take_limits(eval_fnc(i, pt, p), False, p.all_eps))
         print("sample output: " + str(results[-1][0]))
     results = np.array(results)
 

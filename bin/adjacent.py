@@ -43,8 +43,9 @@ def eval(i, pt, p):
         I = lambda nq: adjacent_fixed(nq, p.K, tri1, tri2, eps, 1.0, pr, p.n_rho, p.n_theta)
         res = safe_fixed_quad(I, p)
         integrals.append(res)
+        print(np.array(integrals)[:,0])
         if len(integrals) > 1:
-            lim = take_limits(np.array(integrals), True, p.all_eps[:len(integrals)])[0,0]
+            lim = take_limits(np.array(integrals), False, p.all_eps[:len(integrals)])[0,0]
             print("running limit: " + str(lim))
             if len(integrals) > 2:
                 err = np.abs((old_lim - lim) / lim)
@@ -54,10 +55,11 @@ def eval(i, pt, p):
     return np.array(integrals)
 
 if __name__ == '__main__':
-    p = make_adjacent_params('H', 1e-6, 450, True, 250, 250, 1e-1 / 32, 8, 1, 1)
+    p = make_adjacent_params('H', 1e-6, 500, False, 300, 300, 1e-1, 19, 1, 1)
     p.n_test_tris = 0
     build_tables(eval, p)
     plt.show()
+
 
 
     # n_phi = 20
