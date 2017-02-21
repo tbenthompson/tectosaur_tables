@@ -32,6 +32,8 @@ class TableParams:
         self.high_nq = low_nq * 2
         self.n_test_tris = 100
 
+        self.log_terms = n_eps // 2
+
 def safe_fixed_quad(I, p):
     res = I(p.low_nq)
     if p.check_quad_error:
@@ -42,15 +44,15 @@ def safe_fixed_quad(I, p):
         res = res_hi
     return res
 
-def take_limits(integrals, remove_divergence, all_eps):
+def take_limits(integrals, log_terms, all_eps):
     out = np.empty((81, 2))
     for i in range(81):
-        out[i] = limit(all_eps, integrals[:, i], remove_divergence)
+        out[i] = limit(all_eps, integrals[:, i], log_terms)
     return out
 
 def test_f(results, eval_fnc, p):
     rand_pt = np.random.rand(p.pts.shape[1]) * 2 - 1.0
-    correct = take_limits(eval_fnc(0, rand_pt, p), True, p.all_eps)[:,0]
+    correct = take_limits(eval_fnc(0, rand_pt, p), p.log_terms, p.all_eps)[:,0]
     for i in range(1):
         interp = barycentric_evalnd(p.pts, p.wts, results[:,i,0], np.array([rand_pt]))[0]
         rel_err = np.abs((correct[i] - interp) / correct[i])
@@ -61,7 +63,7 @@ def test_f(results, eval_fnc, p):
 def build_tables(eval_fnc, p, run_test = True):
     results = []
     for i, pt in enumerate(p.pts.tolist()):
-        results.append(take_limits(eval_fnc(i, pt, p), False, p.all_eps))
+        results.append(take_limits(eval_fnc(i, pt, p), p.log_terms, p.all_eps))
         print("sample output: " + str(results[-1][0]))
     results = np.array(results)
 

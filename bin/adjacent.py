@@ -3,17 +3,19 @@ import numpy as np
 
 from tectosaur.interpolate import to_interval
 from tectosaur.table_lookup import adjacent_interp_pts_wts
+import tectosaur.limit as limit
 
 from tectosaur_tables.fixed_integrator import adjacent_fixed
 from build_tables import build_tables, safe_fixed_quad, TableParams, take_limits
 
 
 def make_adjacent_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
-        starting_eps, n_eps, n_phi, n_pr):
+        starting_eps, n_eps, n_phi, n_pr, eps_step = 2.0):
     pts, wts = adjacent_interp_pts_wts(n_phi, n_pr)
     p = TableParams(
         K, tol, low_nq, check_quad_error, n_rho, n_theta,
-        starting_eps, n_eps, (n_phi, n_pr), pts, wts
+        starting_eps, n_eps, (n_phi, n_pr), pts, wts,
+        eps_step = eps_step
     )
     p.filename = (
         '%s_%i_%f_%i_%f_%i_%i_adjacenttable.npy' %
@@ -38,26 +40,38 @@ def eval(i, pt, p):
     tri1 = [[0,0,0],[1,0,0],[0.5,p.psi,0]]
     tri2 = [[1,0,0],[0,0,0],[0.5,Y,Z]]
     integrals = []
+    Ls = []
     for eps in p.all_eps:
         print('running: ' + str((pt, eps)))
         I = lambda nq: adjacent_fixed(nq, p.K, tri1, tri2, eps, 1.0, pr, p.n_rho, p.n_theta)
         res = safe_fixed_quad(I, p)
         integrals.append(res)
-        print(np.array(integrals)[:,0])
+        print(np.array(integrals)[:,0].tolist())
         if len(integrals) > 1:
-            lim = take_limits(np.array(integrals), False, p.all_eps[:len(integrals)])[0,0]
+            lim = take_limits(np.array(integrals), len(integrals) // 2, p.all_eps[:len(integrals)])[0,0]
             print("running limit: " + str(lim))
-            if len(integrals) > 2:
-                err = np.abs((old_lim - lim) / lim)
+            if len(Ls) != 0:
+                err = np.abs((Ls[-1] - lim) / lim)
                 print("lim err: " + str(err))
-            old_lim = lim
 
     return np.array(integrals)
 
 if __name__ == '__main__':
-    p = make_adjacent_params('H', 1e-6, 500, False, 300, 300, 1e-1, 19, 1, 1)
-    p.n_test_tris = 0
+    # p = make_adjacent_params('H', 1e-6, 150, True, 100, 100, 1e-1 / 4, 10, 1, 1)
+    # p = make_adjacent_params('H', 1e-6, 100, True, 150, 100, 1e-1 / 4, 10, 1, 1)
+
+    # These parameters give 1e-9 error for the individual integrals
+    # as tested by increasing each quadrature order and then comparing the values
+    # p = make_adjacent_params('H', 1e-6, 200, False, 200, 200, 8e-1, 23, 1, 1, eps_step = np.sqrt(2))
+    # p.n_test_tris = 0
+    # build_tables(eval, p)
+
+    # plt.show()
+
+    p = make_adjacent_params('H', 1e-6, 200, True, 200, 200, 0.025, 8, 1, 1, eps_step = np.sqrt(2))
+    p.n_test_tris = 100
     build_tables(eval, p)
+
     plt.show()
 
 

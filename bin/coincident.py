@@ -50,15 +50,17 @@ def eval(i, pt, p):
         res = safe_fixed_quad(I, p)
         integrals.append(res)
         if len(integrals) > 1:
-            lim = take_limits(np.array(integrals), True, p.all_eps[:len(integrals)])[0,0]
+            lim = take_limits(np.array(integrals), len(integrals) // 2, p.all_eps[:len(integrals)])[0,0]
             print("running limit: " + str(lim))
             if len(integrals) > 2:
                 lim_err = np.abs((old_lim - lim) / lim)
                 print("lim err: " + str(lim_err))
             old_lim = lim
 
+    print([I[0] for I in integrals])
+
     max_lim_err = max(lim_err, max_lim_err)
-    print("runing max lim err: " + str(max_lim_err))
+    print("running max lim err: " + str(max_lim_err))
 
     return np.array(integrals)
 
@@ -69,7 +71,12 @@ def final_table():
     plt.save_fig('final_table_err.pdf')
 
 if __name__ == '__main__':
-    final_table()
+    # final_table()
+
+    steps = 10
+    p = make_coincident_params("H", 1e-6, 150, True, 95, 95, 0.2 / 4, steps, 1, 1, 1, 1.41)
+    p.n_test_tris = 0
+    build_tables(eval, p)
 
     # p = CoincidentParams("U", 1e-8, 80, 80, 80, 1e-4, 4, 8, 8, 8)
     # p = CoincidentParams("T", 1e-8, 80, 80, 80, 1e-4, 4, 8, 8, 8)
