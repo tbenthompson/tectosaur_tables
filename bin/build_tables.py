@@ -1,21 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 from tectosaur.interpolate import barycentric_evalnd
 from tectosaur.limit import limit
 
 class TableParams:
-    def __init__(self, K, tol, low_nq, check_quad_error, n_rho, n_theta,
+    def __init__(self, K, tol, low_nq, check_quad_error, adaptive_quad_error, n_rho, n_theta,
             starting_eps, n_eps, interp_params, pts, wts, eps_step = 2.0):
 
         self.K = K
         self.tol = tol
         self.low_nq = low_nq
         self.check_quad_error = check_quad_error
+        self.adaptive_quad_error = adaptive_quad_error
         self.n_rho = n_rho
         self.n_theta = n_theta
         self.starting_eps = starting_eps
         self.n_eps = n_eps
+        self.eps_step = eps_step
         self.interp_params = interp_params
         self.pts = pts
         self.wts = wts
@@ -29,18 +32,26 @@ class TableParams:
         self.minlegalB = 0.0881595061826
         self.maxlegalB = 0.873575060826
 
-        self.high_nq = low_nq * 2
         self.n_test_tris = 100
 
-        self.log_terms = n_eps // 2
+        self.log_terms = 1#n_eps // 2
 
 def safe_fixed_quad(I, p):
-    res = I(p.low_nq)
+    res = I(p.low_nq, p.n_rho, p.n_theta)
     if p.check_quad_error:
-        res_hi = I(p.high_nq)
+        res_hi = I(p.low_nq + 1, p.n_rho + 1, p.n_theta + 1)
         rel_err = np.abs((res_hi[0] - res[0]) / res_hi[0])
         print("quad error overestimate: " + str(rel_err))
-        assert(rel_err < p.tol)
+        if not p.adaptive_quad_error:
+            assert(rel_err < p.tol)
+        else:
+            if rel_err > p.tol:
+                new_p = TableParams(
+                    p.K, p.tol, p.low_nq * 2, p.check_quad_error, p.adaptive_quad_error,
+                    p.n_rho * 2, p.n_theta * 2, p.starting_eps, p.n_eps, p.interp_params, p.pts, p.wts,
+                    p.eps_step
+                )
+                return safe_fixed_quad(I, new_p)
         res = res_hi
     return res
 

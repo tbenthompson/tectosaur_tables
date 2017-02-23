@@ -9,11 +9,11 @@ from tectosaur_tables.fixed_integrator import adjacent_fixed
 from build_tables import build_tables, safe_fixed_quad, TableParams, take_limits
 
 
-def make_adjacent_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
-        starting_eps, n_eps, n_phi, n_pr, eps_step = 2.0):
+def make_adjacent_params(K, tol, low_nq, check_quad_error, adaptive_quad_error,
+        n_rho, n_theta, starting_eps, n_eps, n_phi, n_pr, eps_step = 2.0):
     pts, wts = adjacent_interp_pts_wts(n_phi, n_pr)
     p = TableParams(
-        K, tol, low_nq, check_quad_error, n_rho, n_theta,
+        K, tol, low_nq, check_quad_error, adaptive_quad_error, n_rho, n_theta,
         starting_eps, n_eps, (n_phi, n_pr), pts, wts,
         eps_step = eps_step
     )
@@ -23,7 +23,9 @@ def make_adjacent_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
     )
     return p
 
+max_lim_err = 0
 def eval(i, pt, p):
+    global max_lim_err
     for j in range(3):
         print("")
     print("starting integral: " + str(i))
@@ -43,20 +45,30 @@ def eval(i, pt, p):
     Ls = []
     for eps in p.all_eps:
         print('running: ' + str((pt, eps)))
-        I = lambda nq: adjacent_fixed(nq, p.K, tri1, tri2, eps, 1.0, pr, p.n_rho, p.n_theta)
+        I = lambda n_outer, n_rho, n_theta: adjacent_fixed(n_outer, p.K, tri1, tri2, eps, 1.0, pr, n_rho, n_theta)
         res = safe_fixed_quad(I, p)
         integrals.append(res)
-        print(np.array(integrals)[:,0].tolist())
         if len(integrals) > 1:
-            lim = take_limits(np.array(integrals), len(integrals) // 2, p.all_eps[:len(integrals)])[0,0]
+            lim = take_limits(np.array(integrals), 1, p.all_eps[:len(integrals)])[0,0]
             print("running limit: " + str(lim))
             if len(Ls) != 0:
                 err = np.abs((Ls[-1] - lim) / lim)
                 print("lim err: " + str(err))
+            Ls.append(lim)
+    max_lim_err = max(max_lim_err, err)
+    print("max lim err: " + str(max_lim_err))
 
     return np.array(integrals)
 
+
+def final_table():
+    p = make_adjacent_params('H', 1e-6, 75, True, True, 75, 75, 0.05, 9, 14, 6, eps_step = 2.0)
+    p.n_test_tris = 100
+    build_tables(eval, p)
+    plt.savefig('adjacent_H_final_table_err.pdf')
+
 if __name__ == '__main__':
+    final_table()
     # p = make_adjacent_params('H', 1e-6, 150, True, 100, 100, 1e-1 / 4, 10, 1, 1)
     # p = make_adjacent_params('H', 1e-6, 100, True, 150, 100, 1e-1 / 4, 10, 1, 1)
 
@@ -65,16 +77,7 @@ if __name__ == '__main__':
     # p = make_adjacent_params('H', 1e-6, 200, False, 200, 200, 8e-1, 23, 1, 1, eps_step = np.sqrt(2))
     # p.n_test_tris = 0
     # build_tables(eval, p)
-
     # plt.show()
-
-    p = make_adjacent_params('H', 1e-6, 200, True, 200, 200, 0.025, 8, 1, 1, eps_step = np.sqrt(2))
-    p.n_test_tris = 100
-    build_tables(eval, p)
-
-    plt.show()
-
-
 
     # n_phi = 20
     # for n_pr in range(2, 12):
