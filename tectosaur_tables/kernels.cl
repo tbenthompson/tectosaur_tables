@@ -82,6 +82,8 @@ __kernel
 void ${type}_integrals${k_name}(__global Real* result, int chunk, 
     __global Real* pts, 
     __global Real* in_obs_tri, __global Real* in_src_tri,
+    int nq_rho, __global Real* rho_qx, __global Real* rho_qw,
+    int nq_theta, __global Real* theta_qx, __global Real* theta_qw,
     Real eps, Real G, Real nu)
 </%def>
 
@@ -169,7 +171,7 @@ ${func_def("coincident", k_name)}
     ${integral_setup("in_obs_tri", "in_src_tri")}
     ${eval_hatvars()}
 
-    for (int oti = 0; oti < ${theta_q[0].shape[0]}; oti++) {
+    for (int oti = 0; oti < nq_theta; oti++) {
         Real thetahat = (theta_qx[oti] + 1) / 2;
 
         Real thetalow;
@@ -200,7 +202,7 @@ ${func_def("coincident", k_name)}
             rhohigh = ${co_rhohigh(2)}
         }
 
-        for (int ri = 0; ri < ${rho_q[0].shape[0]}; ri++) {
+        for (int ri = 0; ri < nq_rho; ri++) {
             ${rho_quad_eval()}
 
             Real srcxhat = obsxhat + rho * costheta;
@@ -225,7 +227,7 @@ ${func_def("adjacent", k_name)}
     ${integral_setup("in_obs_tri", "in_src_tri")}
     ${eval_hatvars()}
 
-    for (int oti = 0; oti < ${theta_q[0].shape[0]}; oti++) {
+    for (int oti = 0; oti < nq_theta; oti++) {
         Real thetahat = (theta_qx[oti] + 1) / 2;
 
         Real thetalow;
@@ -251,7 +253,7 @@ ${func_def("adjacent", k_name)}
             rhohigh = ${adj_rhohigh(1)}
         }
 
-        for (int ri = 0; ri < ${rho_q[0].shape[0]}; ri++) {
+        for (int ri = 0; ri < nq_rho; ri++) {
             ${rho_quad_eval()}
 
             Real srcxhat = rho * costheta + (1 - obsxhat);
@@ -269,34 +271,6 @@ ${func_def("adjacent", k_name)}
     }
 }
 </%def>
-
-__constant Real rho_qx[${rho_q[0].shape[0]}] = {
-    % for x in rho_q[0][:-1]:
-        ${x},
-    % endfor
-    ${rho_q[0][-1]}
-};
-
-__constant Real rho_qw[${rho_q[1].shape[0]}] = {
-    % for w in rho_q[1][:-1]:
-        ${w},
-    % endfor
-    ${rho_q[1][-1]}
-};
-
-__constant Real theta_qx[${theta_q[0].shape[0]}] = {
-    % for x in theta_q[0][:-1]:
-        ${x},
-    % endfor
-    ${theta_q[0][-1]}
-};
-
-__constant Real theta_qw[${theta_q[1].shape[0]}] = {
-    % for w in theta_q[1][:-1]:
-        ${w},
-    % endfor
-    ${theta_q[1][-1]}
-};
 
 ${prim.geometry_fncs()}
 

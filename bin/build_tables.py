@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
 
 from tectosaur.interpolate import barycentric_evalnd
 from tectosaur.limit import limit
 
 class TableParams:
     def __init__(self, K, tol, low_nq, check_quad_error, adaptive_quad_error, n_rho, n_theta,
-            starting_eps, n_eps, interp_params, pts, wts, eps_step = 2.0):
+            starting_eps, lim_tol, interp_params, pts, wts, eps_step = 2.0):
 
         self.K = K
         self.tol = tol
@@ -17,13 +16,11 @@ class TableParams:
         self.n_rho = n_rho
         self.n_theta = n_theta
         self.starting_eps = starting_eps
-        self.n_eps = n_eps
+        self.lim_tol = lim_tol
         self.eps_step = eps_step
         self.interp_params = interp_params
         self.pts = pts
         self.wts = wts
-
-        self.all_eps = starting_eps * eps_step ** -np.arange(n_eps)
 
         # FOR A MIN ANGLE OF 10 DEGREES
         self.min_angle = 10
@@ -34,26 +31,29 @@ class TableParams:
 
         self.n_test_tris = 100
 
-        self.log_terms = 1#n_eps // 2
-
-def safe_fixed_quad(I, p):
-    res = I(p.low_nq, p.n_rho, p.n_theta)
+def fixed_quad(I, p, orders = None):
+    if orders is None:
+        orders = [p.low_nq, p.n_rho, p.n_theta]
     if p.check_quad_error:
-        res_hi = I(p.low_nq + 1, p.n_rho + 1, p.n_theta + 1)
+        return safe_fixed_quad(I, orders, p.tol, p.adaptive_quad_error)
+    else:
+        return I(*orders), orders
+
+def safe_fixed_quad(I, orders, tol = 0, adaptive = False):
+    res = I(*orders)
+    for i in range(len(orders)):
+        new_orders = orders.copy()
+        new_orders[i] += 1
+        res_hi = I(*new_orders)
         rel_err = np.abs((res_hi[0] - res[0]) / res_hi[0])
-        print("quad error overestimate: " + str(rel_err))
-        if not p.adaptive_quad_error:
-            assert(rel_err < p.tol)
+        print("quad error estimate (" + ','.join([str(o) for o in new_orders]) + "): " + str(rel_err))
+        if not adaptive:
+            assert(rel_err < tol)
         else:
-            if rel_err > p.tol:
-                new_p = TableParams(
-                    p.K, p.tol, p.low_nq * 2, p.check_quad_error, p.adaptive_quad_error,
-                    p.n_rho * 2, p.n_theta * 2, p.starting_eps, p.n_eps, p.interp_params, p.pts, p.wts,
-                    p.eps_step
-                )
-                return safe_fixed_quad(I, new_p)
-        res = res_hi
-    return res
+            if rel_err > tol:
+                new_orders[i] = orders[i] * 2
+                return safe_fixed_quad(I, new_orders, tol, adaptive)
+    return res, orders
 
 def take_limits(integrals, log_terms, all_eps):
     out = np.empty((81, 2))
@@ -63,7 +63,7 @@ def take_limits(integrals, log_terms, all_eps):
 
 def test_f(results, eval_fnc, p):
     rand_pt = np.random.rand(p.pts.shape[1]) * 2 - 1.0
-    correct = take_limits(eval_fnc(0, rand_pt, p), p.log_terms, p.all_eps)[:,0]
+    correct = eval_fnc(0, rand_pt, p)
     for i in range(1):
         interp = barycentric_evalnd(p.pts, p.wts, results[:,i,0], np.array([rand_pt]))[0]
         rel_err = np.abs((correct[i] - interp) / correct[i])
@@ -74,7 +74,7 @@ def test_f(results, eval_fnc, p):
 def build_tables(eval_fnc, p, run_test = True):
     results = []
     for i, pt in enumerate(p.pts.tolist()):
-        results.append(take_limits(eval_fnc(i, pt, p), p.log_terms, p.all_eps))
+        results.append(eval_fnc(i, pt, p))
         print("sample output: " + str(results[-1][0]))
     results = np.array(results)
 
