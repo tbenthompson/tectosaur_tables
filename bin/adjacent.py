@@ -112,8 +112,10 @@ def new_eval(i, pt, p):
 
     epsvs = cheb(0, max, n_pts)
     epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
+    epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
     epsvs.sort()
     epsvs = epsvs[::-1]
+    print(epsvs)
 
     integrals = []
     last_orders = None
@@ -138,22 +140,28 @@ def final_table():
     build_tables(new_eval, p)
     plt.savefig('adjacent_H_final_table_err.pdf')
 
+def test_13th():
+    p = make_adjacent_params('H', 1e-7, 50, True, True, 50, 50, 0.01, 200, 14, 6, eps_step = 1.5)
+    new_eval(13, p.pts[13], p)
+
+
 if __name__ == '__main__':
     # final_table()
+    test_13th()
 
-    start = [0.2]#, 0.1, 0.05, 0.025, 0.01]
-    n_interp = [2]#, 8, 10, 13, 16, 20]
+    # start = [0.1]#, 0.1, 0.05, 0.025, 0.01]
+    # n_interp = [51]#, 8, 10, 13, 16, 20]
 
-    for S in start:
-        for N in n_interp:
-            p = make_adjacent_params('H', 1e-6, 50, True, True, 50, 50, S, N, 1, 1, eps_step = 1.5)
-            p.n_test_tris = 0
-            build_tables(new_eval, p)
-            # plt.savefig('adjacent_H_final_table_err.pdf')
-    print(results)
-    import pickle
-    with open('adjacent_grid_search.pkl', 'wb') as f:
-        pickle.dump(results, f)
+    # for S in start:
+    #     for N in n_interp:
+    #         p = make_adjacent_params('H', 1e-6, 50, True, True, 50, 50, S, N, 1, 1, eps_step = 1.5)
+    #         p.n_test_tris = 0
+    #         build_tables(new_eval, p)
+    #         # plt.savefig('adjacent_H_final_table_err.pdf')
+    # print(results)
+    # import pickle
+    # with open('adjacent_grid_search.pkl', 'wb') as f:
+    #     pickle.dump(results, f)
 
     # p = make_adjacent_params('H', 1e-6, 150, True, 100, 100, 1e-1 / 4, 10, 1, 1)
     # p = make_adjacent_params('H', 1e-6, 100, True, 150, 100, 1e-1 / 4, 10, 1, 1)

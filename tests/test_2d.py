@@ -6,6 +6,14 @@ from tectosaur.geometry import element_pt
 import cppimport
 adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate').adaptive_integrate
 
+# Plan for 2d integrals:
+# -- coincident:
+#
+# -- adjacent:
+#       cut out a pair of standard-sized segments from the adjacent portion.
+#       lookup standard size from doubling table
+#       also interpolate on intersection angle (and poisson ratio)
+
 def unscaled_seg_normal(corners):
     return np.array([-corners[1][1] + corners[0][1], corners[1][0] - corners[0][0]])
 
@@ -102,7 +110,7 @@ def test_2d_rotate():
                 [[0, 0], [np.cos(theta) * scale, np.sin(theta) * scale]],
                 eps = eps * scale
             ))
-        print(epsvs, vals)
+        # print(epsvs, vals)
         lim = limit(epsvs, vals, 1, False)
         print('')
         print(lim)

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tectosaur.util.gpu as gpu
 import tectosaur.quadrature as quad
@@ -8,7 +9,9 @@ adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate').adapti
 
 float_type = np.float64
 def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk):
-    module = gpu.load_gpu('kernels.cl', tmpl_dir = 'tectosaur_tables', tmpl_args = dict())
+    this_dir = os.path.dirname(os.path.realpath(__file__))
+
+    module = gpu.load_gpu('kernels.cl', tmpl_dir = this_dir, tmpl_args = dict())
     fnc = getattr(module, type + '_integrals' + K)
     gpu_rho_qx = gpu.to_gpu(rho_q[0].flatten(), float_type)
     gpu_rho_qw = gpu.to_gpu(rho_q[1].flatten(), float_type)
