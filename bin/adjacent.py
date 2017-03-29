@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from tectosaur.interpolate import to_interval
+from tectosaur.interpolate import to_interval, cheb
 from tectosaur.table_lookup import adjacent_interp_pts_wts
 
 from tectosaur_tables.fixed_integrator import adjacent_fixed
@@ -84,7 +84,7 @@ def new_eval(i, pt, p):
         print("")
 
     phihat, prhat = pt
-    phi = to_interval(0, np.pi, phihat)
+    phi = to_interval(np.pi * 20 / 180., np.pi, phihat) # From 10 degrees to 180 degrees.
     pr = to_interval(0.0, 0.5, prhat)
     print("(phi, pr) = " + str((phi, pr)))
     Y = p.psi * np.cos(phi)
@@ -94,7 +94,6 @@ def new_eval(i, pt, p):
     tri2 = [[1,0,0],[0,0,0],[0.5,Y,Z]]
     integrals = []
 
-    from tectosaur.interpolate import cheb
     max = p.starting_eps
     n_pts = p.lim_tol
 
@@ -135,7 +134,7 @@ def new_eval(i, pt, p):
 
 
 def final_table():
-    p = make_adjacent_params('H', 1e-4, 50, True, True, 50, 50, 0.1, 1e-4, 14, 6, eps_step = 1.5)
+    p = make_adjacent_params('H', 1e-7, 50, True, True, 50, 50, 0.01, 200, 14, 6, eps_step = 1.5)
     p.n_test_tris = 100
     build_tables(new_eval, p)
     plt.savefig('adjacent_H_final_table_err.pdf')
@@ -144,20 +143,37 @@ def test_13th():
     p = make_adjacent_params('H', 1e-7, 50, True, True, 50, 50, 0.01, 200, 14, 6, eps_step = 1.5)
     new_eval(13, p.pts[13], p)
 
-
 if __name__ == '__main__':
-    # final_table()
-    test_13th()
+    final_table()
 
-    # start = [0.1]#, 0.1, 0.05, 0.025, 0.01]
-    # n_interp = [51]#, 8, 10, 13, 16, 20]
+    # def aitken(seq, its = 1):
+    #     assert(its > 0)
+    #     if its > 1:
+    #         S = aitken(seq, its - 1)
+    #     else:
+    #         S = seq
+    #     return S[2:] - ((S[2:] - S[1:-1]) ** 2 / ((S[2:] - S[1:-1]) - (S[1:-1] - S[:-2])))
+
+    # vs = np.array([-0.11527428819709082, -0.11619966401248603, -0.11638986792026991, -0.11646070487737595, -0.1164949890546126, -0.11651476591045216, -0.116526746767, -0.116534185967, -0.116539735132, -0.116543628948])
+    # print(aitken(vs))
+    # print(aitken(vs, 2))
+    # print(aitken(vs, 3))
+    # print(aitken(vs, 4))
+    # import sys;sys.exit()
+
+    # start = [0.01]#[0.2, 0.1, 0.05, 0.025, 0.01]
+    # n_interp = [200]#[6, 8, 10, 13, 16, 20]
+
+
+    # # with err = 1e-7, result = array([-0.11653372, -0.11654198, -0.11654784, -0.11655055, -0.11655294])
+    # # with err = 1e-8, result = array([-0.11653357, -0.11654182, -0.11654708, -0.11655049, -0.11655285])
 
     # for S in start:
     #     for N in n_interp:
-    #         p = make_adjacent_params('H', 1e-6, 50, True, True, 50, 50, S, N, 1, 1, eps_step = 1.5)
-    #         p.n_test_tris = 0
-    #         build_tables(new_eval, p)
+    #         p = make_adjacent_params('H', 1e-7, 50, True, True, 50, 50, S, N, 1, 1, eps_step = 1.5)
+    #         build_tables(new_eval, p, run_test = False)
     #         # plt.savefig('adjacent_H_final_table_err.pdf')
+    # print(results)
     # print(results)
     # import pickle
     # with open('adjacent_grid_search.pkl', 'wb') as f:

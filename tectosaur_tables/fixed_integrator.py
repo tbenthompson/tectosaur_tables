@@ -4,8 +4,9 @@ import tectosaur.quadrature as quad
 from tectosaur_tables.gpu_integrator import make_gpu_integrator
 
 def outer_quad(eps, n_outer_sing, n_outer_smooth, chunk):
-    q1 = quad.aimi_diligenti(quad.gaussxw(n_outer_smooth), 3, 3)
-    q2 = quad.aimi_diligenti(quad.gaussxw(n_outer_smooth), 3, 3)
+    ad_order = 3
+    q1 = quad.aimi_diligenti(quad.gaussxw(n_outer_smooth), ad_order, ad_order)
+    q2 = quad.aimi_diligenti(quad.gaussxw(n_outer_smooth), ad_order, ad_order)
     pts = []
     wts = []
     qx = quad.map_to(q1, [0, 1])
