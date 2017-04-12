@@ -1,23 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from tectosaur.interpolate import barycentric_evalnd
-from tectosaur.limit import limit
+from tectosaur.interpolate import barycentric_evalnd, cheb
+from tectosaur_tables.better_limit import limit
 
 class TableParams:
-    def __init__(self, K, tol, low_nq, check_quad_error, adaptive_quad_error, n_rho, n_theta,
-            starting_eps, lim_tol, interp_params, pts, wts, eps_step = 2.0):
+    def __init__(self, K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_theta,
+            starting_eps, n_eps, interp_params, pts, wts):
 
         self.K = K
         self.tol = tol
         self.low_nq = low_nq
-        self.check_quad_error = check_quad_error
-        self.adaptive_quad_error = adaptive_quad_error
+        self.check_quad = check_quad
+        self.adaptive_quad = adaptive_quad
         self.n_rho = n_rho
         self.n_theta = n_theta
         self.starting_eps = starting_eps
-        self.lim_tol = lim_tol
-        self.eps_step = eps_step
+        self.n_eps = n_eps
         self.interp_params = interp_params
         self.pts = pts
         self.wts = wts
@@ -31,11 +30,25 @@ class TableParams:
 
         self.n_test_tris = 100
 
+def get_eps(n_eps, max_eps):
+    epsvs = cheb(0, max_eps, n_eps)
+    epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
+    epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
+    epsvs.sort()
+    epsvs = epsvs[::-1]
+    return epsvs
+
+def take_limits(all_eps, integrals, log_terms, max):
+    out = np.empty((81, 2))
+    for i in range(81):
+        out[i] = limit(all_eps, integrals[:, i], log_terms, max)
+    return out
+
 def fixed_quad(I, p, orders = None):
     if orders is None:
         orders = [p.low_nq, p.n_rho, p.n_theta]
-    if p.check_quad_error:
-        return safe_fixed_quad(I, orders, p.tol, p.adaptive_quad_error)
+    if p.check_quad:
+        return safe_fixed_quad(I, orders, p.tol, p.adaptive_quad)
     else:
         return I(*orders), orders
 
@@ -54,12 +67,6 @@ def safe_fixed_quad(I, orders, tol = 0, adaptive = False):
                 new_orders[i] = orders[i] * 2
                 return safe_fixed_quad(I, new_orders, tol, adaptive)
     return res, orders
-
-def take_limits(integrals, log_terms, all_eps):
-    out = np.empty((81, 2))
-    for i in range(81):
-        out[i] = limit(all_eps, integrals[:, i], log_terms)
-    return out
 
 def test_f(results, eval_fnc, p):
     rand_pt = np.random.rand(p.pts.shape[1]) * 2 - 1.0

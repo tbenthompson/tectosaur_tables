@@ -5,16 +5,15 @@ from tectosaur.interpolate import to_interval
 from tectosaur.table_lookup import coincident_interp_pts_wts
 
 from tectosaur_tables.fixed_integrator import coincident_fixed
-from build_tables import build_tables, safe_fixed_quad, TableParams, take_limits
+from build_tables import build_tables, fixed_quad, TableParams, take_limits, get_eps
 
-def make_coincident_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
-        starting_eps, n_eps, n_A, n_B, n_pr, eps_step = 2.0):
+def make_coincident_params(K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_theta,
+        starting_eps, n_eps, n_A, n_B, n_pr):
 
     pts, wts = coincident_interp_pts_wts(n_A, n_B, n_pr)
     p = TableParams(
-        K, tol, low_nq, check_quad_error, n_rho, n_theta,
-        starting_eps, n_eps, (n_A, n_B, n_pr), pts, wts,
-        eps_step = eps_step
+        K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_theta,
+        starting_eps, n_eps, (n_A, n_B, n_pr), pts, wts
     )
     p.filename = (
         '%s_%i_%f_%i_%f_%i_%i_%i_coincidenttable.npy' %
@@ -23,6 +22,7 @@ def make_coincident_params(K, tol, low_nq, check_quad_error, n_rho, n_theta,
     return p
 
 
+results = dict()
 max_lim_err = 0
 def eval(i, pt, p):
     global max_lim_err
@@ -42,27 +42,23 @@ def eval(i, pt, p):
 
     tri = [[0,0,0],[1,0,0],[A,B,0.0]]
 
+    epsvs = get_eps(p.n_eps, p.starting_eps)
+
     integrals = []
-    old_lim = 0
-    for eps in p.all_eps:
+    last_orders = None
+    for eps in epsvs:
         print('running: ' + str((pt, eps)))
-        I = lambda nq: coincident_fixed(nq, p.K, tri, eps, 1.0, pr, p.n_rho, p.n_theta)
-        res = safe_fixed_quad(I, p)
+        I = lambda n_outer, n_rho, n_theta: coincident_fixed(
+            n_outer, p.K, tri, eps, 1.0, pr, n_rho, n_theta
+        )
+        res, last_orders = fixed_quad(I, p, last_orders)
         integrals.append(res)
-        if len(integrals) > 1:
-            lim = take_limits(np.array(integrals), len(integrals) // 2, p.all_eps[:len(integrals)])[0,0]
-            print("running limit: " + str(lim))
-            if len(integrals) > 2:
-                lim_err = np.abs((old_lim - lim) / lim)
-                print("lim err: " + str(lim_err))
-            old_lim = lim
+    integrals = np.array(integrals)
+    lim = take_limits(epsvs, integrals, 1, p.starting_eps)
+    print(lim[0,0])
+    results[(p.starting_eps, p.n_eps)] = lim
 
-    print([I[0] for I in integrals])
-
-    max_lim_err = max(lim_err, max_lim_err)
-    print("running max lim err: " + str(max_lim_err))
-
-    return np.array(integrals)
+    return take_limits(epsvs, integrals, 1, p.starting_eps)
 
 def final_table():
     p = make_coincident_params("H", 1e-6, 200, False, 100, 180, 1e-1 / 32, 6, 12, 17, 9)
@@ -73,8 +69,7 @@ def final_table():
 if __name__ == '__main__':
     # final_table()
 
-    steps = 10
-    p = make_coincident_params("H", 1e-6, 150, True, 95, 95, 0.2 / 4, steps, 1, 1, 1, 1.41)
+    p = make_coincident_params("H", 1e-5, 25, True, True, 25, 25, 0.01, 10, 12, 17, 9)
     p.n_test_tris = 0
     build_tables(eval, p)
 
