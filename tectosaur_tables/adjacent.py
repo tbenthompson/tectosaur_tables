@@ -10,11 +10,11 @@ from tectosaur_tables.better_limit import limit
 
 
 def make_adjacent_params(K, tol, low_nq, check_quad, adaptive_quad,
-        n_rho, n_theta, starting_eps, n_eps, n_phi, n_pr):
+        n_rho, n_theta, starting_eps, n_eps, include_log, n_phi, n_pr):
     pts, wts = adjacent_interp_pts_wts(n_phi, n_pr)
     p = TableParams(
         K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_theta,
-        starting_eps, n_eps, (n_phi, n_pr), pts, wts
+        starting_eps, n_eps, include_log, (n_phi, n_pr), pts, wts
     )
     p.filename = (
         '%s_%i_%f_%i_%f_%i_%i_adjacenttable.npy' %

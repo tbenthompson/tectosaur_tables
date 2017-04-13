@@ -6,7 +6,7 @@ from tectosaur_tables.better_limit import limit
 
 class TableParams:
     def __init__(self, K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_theta,
-            starting_eps, n_eps, interp_params, pts, wts):
+            starting_eps, n_eps, include_log, interp_params, pts, wts):
 
         self.K = K
         self.tol = tol
@@ -17,6 +17,7 @@ class TableParams:
         self.n_theta = n_theta
         self.starting_eps = starting_eps
         self.n_eps = n_eps
+        self.include_log = include_log
         self.interp_params = interp_params
         self.pts = pts
         self.wts = wts
@@ -78,15 +79,15 @@ def test_f(results, eval_fnc, p):
         print('testing: ' + str(i) + ' ' + str((correct[i], interp, rel_err, abs_diff)))
     return rel_err
 
-def build_tables(eval_fnc, p, run_test = True):
+def build_tables(eval_fnc, p):
     results = []
     for i, pt in enumerate(p.pts.tolist()):
         results.append(eval_fnc(i, pt, p))
         print("sample output: " + str(results[-1][0]))
     results = np.array(results)
-
     np.save(p.filename, results)
 
+def test_tables(eval_fnc, p):
     results = np.load(p.filename)
     if run_test:
         np.random.seed(15)
@@ -96,3 +97,8 @@ def build_tables(eval_fnc, p, run_test = True):
         plt.figure()
         plt.hist(np.log10(np.abs(all)))
         plt.title(' '.join(map(str, p.interp_params)))
+
+def build_and_test_tables(eval_fnc, p):
+    build_tables(eval_fnc, p)
+    test_tables(eval_fnc, p)
+
