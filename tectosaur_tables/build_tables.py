@@ -89,14 +89,13 @@ def build_tables(eval_fnc, p):
 
 def test_tables(eval_fnc, p):
     results = np.load(p.filename)
-    if run_test:
-        np.random.seed(15)
-        all = []
-        for i in range(p.n_test_tris):
-            all.append(test_f(results, eval_fnc, p))
-        plt.figure()
-        plt.hist(np.log10(np.abs(all)))
-        plt.title(' '.join(map(str, p.interp_params)))
+    np.random.seed(15)
+    all = []
+    for i in range(p.n_test_tris):
+        all.append(test_f(results, eval_fnc, p))
+    plt.figure()
+    plt.hist(np.log10(np.abs(all)))
+    plt.title(' '.join(map(str, p.interp_params)))
 
 def build_and_test_tables(eval_fnc, p):
     build_tables(eval_fnc, p)

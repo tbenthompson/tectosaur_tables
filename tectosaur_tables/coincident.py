@@ -22,6 +22,25 @@ def make_coincident_params(K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_t
     )
     return p
 
+def eval_tri_integral(tri, pr, p):
+    epsvs = get_eps(p.n_eps, p.starting_eps)
+
+    integrals = []
+    last_orders = None
+    for eps in epsvs:
+        print('running: ' + str((tri[2][0], tri[2][1], pr, eps)))
+        I = lambda n_outer, n_rho, n_theta: coincident_fixed(
+            n_outer, p.K, tri, eps, 1.0, pr, n_rho, n_theta
+        )
+        res, last_orders = fixed_quad(I, p, last_orders)
+        integrals.append(res)
+    integrals = np.array(integrals)
+    n_log_terms = 1 if p.include_log else 0
+    lim = take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
+    print(lim[0,0])
+    results[(p.starting_eps, p.n_eps)] = lim
+
+    return take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
 
 results = dict()
 max_lim_err = 0
@@ -43,21 +62,4 @@ def eval_integral(i, pt, p):
 
     tri = [[0,0,0],[1,0,0],[A,B,0.0]]
 
-    epsvs = get_eps(p.n_eps, p.starting_eps)
-
-    integrals = []
-    last_orders = None
-    for eps in epsvs:
-        print('running: ' + str((pt, eps)))
-        I = lambda n_outer, n_rho, n_theta: coincident_fixed(
-            n_outer, p.K, tri, eps, 1.0, pr, n_rho, n_theta
-        )
-        res, last_orders = fixed_quad(I, p, last_orders)
-        integrals.append(res)
-    integrals = np.array(integrals)
-    n_log_terms = 1 if p.include_log else 0
-    lim = take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
-    print(lim[0,0])
-    results[(p.starting_eps, p.n_eps)] = lim
-
-    return take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
+    return eval_tri_integral(tri, pr, p)
