@@ -22,6 +22,25 @@ def make_adjacent_params(K, tol, low_nq, check_quad, adaptive_quad,
     )
     return p
 
+def eval_tri_integral(obs_tri, src_tri, pr, p):
+    epsvs = get_eps(p.n_eps, p.starting_eps)
+
+    integrals = []
+    last_orders = None
+    for eps in epsvs:
+        print('running: ' + str((obs_tri, src_tri, pr, eps)))
+        I = lambda n_outer, n_rho, n_theta: adjacent_fixed(
+            n_outer, p.K, obs_tri, src_tri, eps, 1.0, pr, n_rho, n_theta
+        )
+        res, last_orders = fixed_quad(I, p, last_orders)
+        integrals.append(res)
+    integrals = np.array(integrals)
+    lim = take_limits(epsvs, integrals, 1, p.starting_eps)[0,0]
+    print(lim)
+    results[(p.starting_eps, p.n_eps)] = lim
+
+    return take_limits(epsvs, integrals, 1, p.starting_eps)
+
 results = dict()
 def eval_integral(i, pt, p):
     for j in range(3):
@@ -37,23 +56,7 @@ def eval_integral(i, pt, p):
     Y = p.psi * np.cos(phi)
     Z = p.psi * np.sin(phi)
 
-    tri1 = [[0,0,0],[1,0,0],[0.5,p.psi,0]]
-    tri2 = [[1,0,0],[0,0,0],[0.5,Y,Z]]
+    obs_tri = [[0,0,0],[1,0,0],[0.5,p.psi,0]]
+    src_tri = [[1,0,0],[0,0,0],[0.5,Y,Z]]
+    return eval_tri_integral(obs_tri, src_tri, pr, p)
 
-    epsvs = get_eps(p.n_eps, p.starting_eps)
-
-    integrals = []
-    last_orders = None
-    for eps in epsvs:
-        print('running: ' + str((pt, eps)))
-        I = lambda n_outer, n_rho, n_theta: adjacent_fixed(
-            n_outer, p.K, tri1, tri2, eps, 1.0, pr, n_rho, n_theta
-        )
-        res, last_orders = fixed_quad(I, p, last_orders)
-        integrals.append(res)
-    integrals = np.array(integrals)
-    lim = take_limits(epsvs, integrals, 1, p.starting_eps)[0,0]
-    print(lim)
-    results[(p.starting_eps, p.n_eps)] = lim
-
-    return take_limits(epsvs, integrals, 1, p.starting_eps)
