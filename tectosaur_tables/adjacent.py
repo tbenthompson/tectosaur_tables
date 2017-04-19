@@ -35,11 +35,12 @@ def eval_tri_integral(obs_tri, src_tri, pr, p):
         res, last_orders = fixed_quad(I, p, last_orders)
         integrals.append(res)
     integrals = np.array(integrals)
-    lim = take_limits(epsvs, integrals, 1, p.starting_eps)[0,0]
-    print(lim)
+    n_log_terms = 1 if p.include_log else 0
+    lim = take_limits(epsvs, integrals, n_log_terms, p.starting_eps)[0,0]
+    # print(lim)
     results[(p.starting_eps, p.n_eps)] = lim
 
-    return take_limits(epsvs, integrals, 1, p.starting_eps)
+    return take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
 
 results = dict()
 def eval_integral(i, pt, p):

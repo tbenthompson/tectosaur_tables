@@ -75,9 +75,9 @@ def test_f(results, eval_fnc, p):
     correct = eval_fnc(0, rand_pt, p)
     for i in range(1):
         interp = barycentric_evalnd(p.pts, p.wts, results[:,i,0], np.array([rand_pt]))[0]
-        rel_err = np.abs((correct[i] - interp) / correct[i])
-        abs_diff = correct[i] - interp
-        print('testing: ' + str(i) + ' ' + str((correct[i], interp, rel_err, abs_diff)))
+        rel_err = np.abs((correct[i,0] - interp) / correct[i,0])
+        abs_diff = correct[i,0] - interp
+        print('testing: ' + str(i) + ' ' + str((correct[i,0], interp, rel_err, abs_diff)))
     return rel_err
 
 def build_tables(eval_fnc, p):

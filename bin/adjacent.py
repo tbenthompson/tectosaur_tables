@@ -12,7 +12,7 @@ def final_tableH():
 
 def interp_order_test(K, remove_log, n_phi, n_pr):
     p = make_adjacent_params(K, 1e-7, 25, True, True, 25, 25, 0.1, 1, remove_log, n_phi, n_pr)
-    p.n_test_tris = 100
+    p.n_test_tris = 10
     build_and_test_tables(eval_integral, p)
     plt.savefig('adj_interp_test_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
 
@@ -21,8 +21,13 @@ if __name__ == '__main__':
 
     n_phi = [5, 8, 11, 14]
     n_pr = [4, 6, 8, 10]
-    for i in range(len(n_phi)):
+    # n_phi = [1]
+    # n_pr = [1]
+    for i in range(len(n_phi - 1)):
         interp_order_test('T', False, n_phi[i], n_pr[-1])
+    for i in range(len(n_pr - 1)):
+        interp_order_test('T', False, n_phi[-1], n_pr[i])
+    interp_order_test('T', False, n_phi[-1], n_pr[-1])
 
 
 def compare_with_old():
