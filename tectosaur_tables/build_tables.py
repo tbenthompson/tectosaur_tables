@@ -33,8 +33,9 @@ class TableParams:
 
 def get_eps(n_eps, max_eps):
     epsvs = cheb(0, max_eps, n_eps)
-    epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
-    epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
+    if n_eps >= 2:
+        epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
+        epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
     epsvs.sort()
     epsvs = epsvs[::-1]
     return epsvs

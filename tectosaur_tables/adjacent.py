@@ -28,7 +28,7 @@ def eval_tri_integral(obs_tri, src_tri, pr, p):
     integrals = []
     last_orders = None
     for eps in epsvs:
-        print('running: ' + str((obs_tri, src_tri, pr, eps)))
+        print('running: ' + str((np.arccos(src_tri[2][1] / p.psi), pr, eps)))
         I = lambda n_outer, n_rho, n_theta: adjacent_fixed(
             n_outer, p.K, obs_tri, src_tri, eps, 1.0, pr, n_rho, n_theta
         )
