@@ -21,6 +21,7 @@ def make_terms(n_terms, log_terms, max):
 def limit_coeffs(eps_vals, f_vals, log_terms, max):
     terms = make_terms(len(eps_vals), log_terms, max)
     mat = [[t(e) for t in terms] for e in eps_vals]
+    import ipdb;ipdb.set_trace();
     assert(np.linalg.cond(mat) < 10000)
     coeffs = np.linalg.lstsq(mat, f_vals)
     return coeffs[0], terms

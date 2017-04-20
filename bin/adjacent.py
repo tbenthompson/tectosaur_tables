@@ -12,22 +12,45 @@ def final_tableH():
 
 def interp_order_test(K, remove_log, n_phi, n_pr):
     p = make_adjacent_params(K, 1e-7, 25, True, True, 25, 25, 0.1, 1, remove_log, n_phi, n_pr)
-    p.n_test_tris = 10
+    p.n_test_tris = 100
     build_and_test_tables(eval_integral, p)
     plt.savefig('adj_interp_test_' + str(n_phi) + '_' + str(n_pr) + '.pdf')
 
+def explore_interp_orders(K, remove_log):
+    n_phi = np.arange(5, 15)
+    n_pr = np.arange(4, 11)
+    n_phi = [1]
+    n_pr = [1]
+    for i in range(len(n_phi) - 1):
+        interp_order_test(K, remove_log, n_phi[i], n_pr[-1])
+    for i in range(len(n_pr) - 1):
+        interp_order_test(K, remove_log, n_phi[-1], n_pr[i])
+    interp_order_test(K, remove_log, n_phi[-1], n_pr[-1])
+
+def eps_order_test(K, remove_log, starting_eps, n_eps):
+    p = make_adjacent_params(K, 100, 1, True, True, 1, 1, starting_eps, n_eps, remove_log, 1, 1)
+    pr = 0.25
+    phi = 0.5 * np.pi
+    Y = p.psi * np.cos(phi)
+    Z = p.psi * np.sin(phi)
+    obs_tri = [[0,0,0],[1,0,0],[0.5,p.psi,0]]
+    src_tri = [[1,0,0],[0,0,0],[0.5,Y,Z]]
+    out = eval_tri_integral(obs_tri, src_tri, pr, p)
+    return out
+
+def explore_eps_orders(K, remove_log):
+    n_eps = [16,32,64,128,256]
+    results = []
+    for N in n_eps:
+        results.append(eps_order_test(K, remove_log, 0.01, N))
+    print('Tests complete...')
+    print(zip(n_eps, results))
+
 if __name__ == '__main__':
     # final_table()
+    # explore_interp_orders('T', False)
+    explore_eps_orders('T', False)
 
-    n_phi = [5, 8, 11, 14]
-    n_pr = [4, 6, 8, 10]
-    # n_phi = [1]
-    # n_pr = [1]
-    for i in range(len(n_phi - 1)):
-        interp_order_test('T', False, n_phi[i], n_pr[-1])
-    for i in range(len(n_pr - 1)):
-        interp_order_test('T', False, n_phi[-1], n_pr[i])
-    interp_order_test('T', False, n_phi[-1], n_pr[-1])
 
 
 def compare_with_old():
