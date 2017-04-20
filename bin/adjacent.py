@@ -44,7 +44,7 @@ def explore_eps_orders(K, remove_log):
     for N in n_eps:
         results.append(eps_order_test(K, remove_log, 0.01, N))
     print('Tests complete...')
-    print(zip(n_eps, results))
+    print(str(zip(n_eps, results)))
 
 if __name__ == '__main__':
     # final_table()

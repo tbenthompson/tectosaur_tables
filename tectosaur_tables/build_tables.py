@@ -31,11 +31,12 @@ class TableParams:
 
         self.n_test_tris = 100
 
-def get_eps(n_eps, max_eps):
+def get_eps(n_eps, max_eps, include_log):
     epsvs = cheb(0, max_eps, n_eps)
     if n_eps >= 2:
         epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
-        epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
+        if include_log:
+            epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
     epsvs.sort()
     epsvs = epsvs[::-1]
     return epsvs

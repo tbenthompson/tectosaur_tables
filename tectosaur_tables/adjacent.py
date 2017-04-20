@@ -23,7 +23,7 @@ def make_adjacent_params(K, tol, low_nq, check_quad, adaptive_quad,
     return p
 
 def eval_tri_integral(obs_tri, src_tri, pr, p):
-    epsvs = get_eps(p.n_eps, p.starting_eps)
+    epsvs = get_eps(p.n_eps, p.starting_eps, p.include_log)
 
     integrals = []
     last_orders = None

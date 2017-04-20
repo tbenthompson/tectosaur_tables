@@ -23,7 +23,7 @@ def make_coincident_params(K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_t
     return p
 
 def eval_tri_integral(tri, pr, p):
-    epsvs = get_eps(p.n_eps, p.starting_eps)
+    epsvs = get_eps(p.n_eps, p.starting_eps, p.include_log)
 
     integrals = []
     last_orders = None
