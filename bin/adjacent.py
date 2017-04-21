@@ -4,11 +4,11 @@ from tectosaur_tables.adjacent import make_adjacent_params, eval_tri_integral,\
 from tectosaur_tables.build_tables import build_and_test_tables
 import matplotlib.pyplot as plt
 
-def final_tableH():
-    p = make_adjacent_params('H', 1e-7, 50, True, True, 50, 50, 0.01, 200, 14, 6)
+def final_table(K, n_eps, n_phi, n_pr, remove_log):
+    p = make_adjacent_params(K, 1e-7, 50, True, True, 50, 50, 0.01, n_eps, remove_log, n_phi, n_pr)
     p.n_test_tris = 100
     build_and_test_tables(eval_integral, p)
-    plt.savefig('adjacent_H_final_table_err.pdf')
+    plt.savefig('adjacent_' + str(K) + '_final_table_err.pdf')
 
 def interp_order_test(K, remove_log, n_phi, n_pr):
     p = make_adjacent_params(K, 1e-7, 25, True, True, 25, 25, 0.1, 1, remove_log, n_phi, n_pr)
@@ -28,7 +28,7 @@ def explore_interp_orders(K, remove_log):
     interp_order_test(K, remove_log, n_phi[-1], n_pr[-1])
 
 def eps_order_test(K, remove_log, starting_eps, n_eps):
-    p = make_adjacent_params(K, 100, 1, True, True, 1, 1, starting_eps, n_eps, remove_log, 1, 1)
+    p = make_adjacent_params(K, 1e-7, 25, True, True, 25, 25, starting_eps, n_eps, remove_log, 1, 1)
     pr = 0.25
     phi = 0.5 * np.pi
     Y = p.psi * np.cos(phi)
@@ -43,13 +43,17 @@ def explore_eps_orders(K, remove_log):
     results = []
     for N in n_eps:
         results.append(eps_order_test(K, remove_log, 0.01, N))
+        print("eps test done")
+        print(results[-1])
     print('Tests complete...')
-    print(str(zip(n_eps, results)))
+    import ipdb;ipdb.set_trace()
+    # print(str(zip(n_eps, results)))
 
 if __name__ == '__main__':
-    # final_table()
+    # final_table('H', 200, 14, 6, True)
+    final_table('T', 256, 12, 7, False)
     # explore_interp_orders('T', False)
-    explore_eps_orders('T', False)
+    # explore_eps_orders('T', False)
 
 
 
