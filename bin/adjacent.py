@@ -4,8 +4,8 @@ from tectosaur_tables.adjacent import make_adjacent_params, eval_tri_integral,\
 from tectosaur_tables.build_tables import build_and_test_tables
 import matplotlib.pyplot as plt
 
-def final_table(K, n_eps, n_phi, n_pr, remove_log):
-    p = make_adjacent_params(K, 1e-7, 50, True, True, 50, 50, 0.01, n_eps, remove_log, n_phi, n_pr)
+def final_table(K, max_eps, n_eps, n_phi, n_pr, remove_log):
+    p = make_adjacent_params(K, 1e-7, 25, True, True, 25, 25, max_eps, n_eps, remove_log, n_phi, n_pr)
     p.n_test_tris = 100
     build_and_test_tables(eval_integral, p)
     plt.savefig('adjacent_' + str(K) + '_final_table_err.pdf')
@@ -19,8 +19,6 @@ def interp_order_test(K, remove_log, n_phi, n_pr):
 def explore_interp_orders(K, remove_log):
     n_phi = np.arange(5, 15)
     n_pr = np.arange(4, 11)
-    n_phi = [1]
-    n_pr = [1]
     for i in range(len(n_phi) - 1):
         interp_order_test(K, remove_log, n_phi[i], n_pr[-1])
     for i in range(len(n_pr) - 1):
@@ -39,21 +37,25 @@ def eps_order_test(K, remove_log, starting_eps, n_eps):
     return out
 
 def explore_eps_orders(K, remove_log):
-    n_eps = [16,32,64,128,256]
+    # n_eps = [16,32,64,128,256]
+    n_eps = [2,3]
+    max_eps = 1e-7
+
     results = []
     for N in n_eps:
-        results.append(eps_order_test(K, remove_log, 0.01, N))
+        results.append(eps_order_test(K, remove_log, max_eps, N))
         print("eps test done")
         print(results[-1])
     print('Tests complete...')
+    np.save('adj_' + K + '_eps_convergence.npy', results)
     import ipdb;ipdb.set_trace()
     # print(str(zip(n_eps, results)))
 
 if __name__ == '__main__':
     # final_table('H', 200, 14, 6, True)
-    final_table('T', 256, 12, 7, False)
+    final_table('T', 1e-7, 3, 12, 7, False)
     # explore_interp_orders('T', False)
-    # explore_eps_orders('T', False)
+    explore_eps_orders('T', False)
 
 
 
