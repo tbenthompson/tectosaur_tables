@@ -38,8 +38,10 @@ def eps_order_test(K, remove_log, starting_eps, n_eps):
 
 def explore_eps_orders(K, remove_log):
     # n_eps = [16,32,64,128,256]
-    n_eps = [2,3]
-    max_eps = 1e-7
+    # n_eps = [2,3]
+    # max_eps = 1e-7
+    n_eps = [8,16,32]
+    max_eps = 0.01
 
     results = []
     for N in n_eps:
@@ -53,9 +55,12 @@ def explore_eps_orders(K, remove_log):
 
 if __name__ == '__main__':
     # final_table('H', 200, 14, 6, True)
-    final_table('T', 1e-7, 3, 12, 7, False)
+    # final_table('T', 1e-7, 3, 12, 7, False)
+    # final_table('U', 0.01, 16, ..., False)
     # explore_interp_orders('T', False)
-    explore_eps_orders('T', False)
+    explore_interp_orders('U', False)
+    # explore_eps_orders('T', False)
+    # explore_eps_orders('U', False)
 
 
 
