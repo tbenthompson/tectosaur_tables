@@ -59,11 +59,12 @@ def explore_eps_orders(K, remove_log):
     np.save('co_' + K + '_eps_convergence.npy', results)
 
 if __name__ == '__main__':
-    # final_table('T', 1e-7, 3, 12, 13, 7, False)
-    # final_table('U', 0.01, 16, ..., False)
+    final_table('T', 1e-7, 3, 12, 13, 7, False)
+    final_table('A', 1e-7, 3, 12, 13, 7, False)
+    final_table('U', 0.01, 16, 8, 13, 8, False)
     # explore_interp_orders('T', False)
     # explore_eps_orders('T', False)
-    explore_interp_orders('U', False)
+    # explore_interp_orders('U', False)
     # explore_eps_orders('U', False)
     # p = make_coincident_params(
     #     "T", 1e-8, 25, True, True, 25, 25, 0.01, 40, False, 1, 1, 1
