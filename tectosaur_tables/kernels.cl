@@ -84,7 +84,7 @@ void ${type}_integrals${k_name}(__global Real* result, int chunk,
     __global Real* in_obs_tri, __global Real* in_src_tri,
     int nq_rho, __global Real* rho_qx, __global Real* rho_qw,
     int nq_theta, __global Real* theta_qx, __global Real* theta_qw,
-    Real eps, Real G, Real nu)
+    Real eps, Real G, Real nu, int flip_obsn)
 </%def>
 
 <%def name="zero_output()">
@@ -109,6 +109,11 @@ void ${type}_integrals${k_name}(__global Real* result, int chunk,
         }
     }
     ${prim.tri_info("obs", "n")}
+    if (flip_obsn == 1) {
+        % for d in range(3):
+            n${dn(d)} *= -1;
+        % endfor
+    }
     ${prim.tri_info("src", "l")}
 </%def>
 

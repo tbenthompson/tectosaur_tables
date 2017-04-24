@@ -19,7 +19,7 @@ def outer_quad(eps, n_outer_sing, n_outer_smooth, chunk):
     return np.array(pts), np.array(wts)
 
 def general_fixed(outer_order, type, K, obs_tri, src_tri,
-        eps, sm, pr, rho_order, theta_order):
+        eps, sm, pr, rho_order, theta_order, flip_obsn):
     rho_gauss = quad.gaussxw(rho_order)
     rho_q = quad.sinh_transform(rho_gauss, -1, eps * 2)
     theta_q = quad.gaussxw(theta_order)
@@ -28,7 +28,7 @@ def general_fixed(outer_order, type, K, obs_tri, src_tri,
     for chunk in range(n_chunks):
         q_rule = outer_quad(eps, outer_order, outer_order, chunk)
         integrator = make_gpu_integrator(
-            type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk
+            type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, flip_obsn, chunk
         )
         chunk_res_pts = integrator(q_rule[0])
         chunk_res = np.sum(chunk_res_pts * q_rule[1][:,np.newaxis], axis = 0)
@@ -37,12 +37,13 @@ def general_fixed(outer_order, type, K, obs_tri, src_tri,
 
 def coincident_fixed(outer_order, K, tri, eps, sm, pr, rho_order, theta_order):
     return general_fixed(
-        outer_order, 'coincident', K, tri, tri, eps, sm, pr, rho_order, theta_order
+        outer_order, 'coincident', K, tri, tri, eps, sm, pr, rho_order, theta_order, False
     )
 
 def adjacent_fixed(outer_order, K, obs_tri, src_tri, eps,
-        sm, pr, rho_order, theta_order):
+        sm, pr, rho_order, theta_order, flip_obsn):
     return general_fixed(
-        outer_order, 'adjacent', K, obs_tri, src_tri, eps, sm, pr, rho_order, theta_order
+        outer_order, 'adjacent', K, obs_tri, src_tri,
+        eps, sm, pr, rho_order, theta_order, flip_obsn
     )
 
