@@ -55,7 +55,7 @@ def explore_eps_orders(K, remove_log):
 
 if __name__ == '__main__':
     # final_table('U', 0.01, 16, 7, 8, False)
-    final_table('T', 1e-7, 3, 16, 7, False)
+    # final_table('T', 1e-7, 3, 16, 7, False)
     final_table('A', 1e-7, 3, 16, 7, False)
     # final_table('H', 200, 14, 6, True)
     # explore_interp_orders('T', False)

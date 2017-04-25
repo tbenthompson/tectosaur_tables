@@ -63,7 +63,7 @@ def eval_integral(i, pt, p):
     src_tri = [[1,0,0],[0,0,0],[0.5,Y,Z]]
     flip_obsn = phi > np.pi
     out = eval_tri_integral(obs_tri, src_tri, pr, p, flip_obsn)
-    if p.K == 'A':
+    if p.K == 'A' and phi > np.pi:
         out *= -1
     return out
 
