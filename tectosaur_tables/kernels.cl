@@ -15,7 +15,7 @@ else:
 
 #define Real ${float_type}
 
-<%namespace name="prim" file="integral_primitives.cl"/>
+<%namespace name="prim" file="nearfield/integral_primitives.cl"/>
 
 <%def name="co_theta_low(chunk)">\
 % if chunk == 0:

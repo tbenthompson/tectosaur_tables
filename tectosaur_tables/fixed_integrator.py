@@ -1,6 +1,6 @@
 import numpy as np
 
-import tectosaur.quadrature as quad
+import tectosaur.util.quadrature as quad
 from tectosaur_tables.gpu_integrator import make_gpu_integrator
 
 def outer_quad(eps, n_outer_sing, n_outer_smooth, chunk):

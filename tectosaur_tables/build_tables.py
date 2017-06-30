@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from tectosaur.interpolate import barycentric_evalnd, cheb
+from tectosaur.nearfield.interpolate import barycentric_evalnd, cheb
 from tectosaur_tables.better_limit import limit
 
 class TableParams:
@@ -39,7 +39,7 @@ def get_eps(n_eps, max_eps, include_log):
             epsvs.append((epsvs[-1] + epsvs[-2]) / 2)
     epsvs.sort()
     epsvs = epsvs[::-1]
-    return epsvs
+    return np.array(epsvs)
 
 def take_limits(all_eps, integrals, log_terms, max):
     out = np.empty((81, 2))

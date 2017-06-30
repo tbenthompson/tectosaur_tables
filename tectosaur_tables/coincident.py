@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from tectosaur.interpolate import to_interval
-from tectosaur.table_lookup import coincident_interp_pts_wts
+from tectosaur.nearfield.interpolate import to_interval
+from tectosaur.nearfield.table_params import coincident_interp_pts_wts
 
 from tectosaur_tables.fixed_integrator import coincident_fixed
 from tectosaur_tables.build_tables import build_tables, fixed_quad,\
@@ -22,7 +22,7 @@ def make_coincident_params(K, tol, low_nq, check_quad, adaptive_quad, n_rho, n_t
     )
     return p
 
-def eval_tri_integral(tri, pr, p):
+def eval_tri_integral_no_limit(tri, pr, p):
     epsvs = get_eps(p.n_eps, p.starting_eps, p.include_log)
 
     integrals = []
@@ -34,12 +34,14 @@ def eval_tri_integral(tri, pr, p):
         )
         res, last_orders = fixed_quad(I, p, last_orders)
         integrals.append(res)
-    integrals = np.array(integrals)
+    return epsvs, np.array(integrals)
+
+def eval_tri_integral(tri, pr, p):
+    epsvs, integrals = eval_tri_integral_no_limit(tri, pr, p)
     n_log_terms = 1 if p.include_log else 0
     lim = take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
     print(lim[0,0])
     results[(p.starting_eps, p.n_eps)] = lim
-
     return take_limits(epsvs, integrals, n_log_terms, p.starting_eps)
 
 results = dict()
