@@ -1,21 +1,23 @@
 <%!
 from tectosaur import source_dir
+from tectosaur.kernels import elastic_kernels
 %>
+
 <%
 def dn(dim):
     return ['x', 'y', 'z'][dim]
+
 import numpy as np
-from tectosaur_tables.gpu_integrator import float_type as np_float_type
-if np_float_type == np.float32:
-    float_type = 'float'
-else:
-    float_type = 'double'
+from tectosaur_tables.gpu_integrator import gpu_float_type
 %>
+
+${cluda_preamble}
+
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
-#define Real ${float_type}
+#define Real ${gpu_float_type}
 
-<%namespace name="prim" file="nearfield/integral_primitives.cl"/>
+<%namespace name="prim" file="integral_primitives.cl"/>
 
 <%def name="co_theta_low(chunk)">\
 % if chunk == 0:
@@ -51,7 +53,7 @@ M_PI - atan2(1 - obsyhat, obsxhat);
 % if chunk == 0:
 0;
 % elif chunk == 1:
-M_PI - atan2(1, 1 - obsxhat);
+M_PI - atan2(1.0, 1 - obsxhat);
 % else:
 0;
 % endif
@@ -59,7 +61,7 @@ M_PI - atan2(1, 1 - obsxhat);
 
 <%def name="adj_theta_high(chunk)">\
 % if chunk == 0:
-M_PI - atan2(1, 1 - obsxhat);
+M_PI - atan2(1.0, 1 - obsxhat);
 % elif chunk == 1:
 M_PI;
 % else:
@@ -77,14 +79,14 @@ obsxhat / (costheta + sintheta);
 % endif
 </%def>
 
-<%def name="func_def(type, k_name)">
-__kernel
-void ${type}_integrals${k_name}(__global Real* result, int chunk, 
-    __global Real* pts, 
-    __global Real* in_obs_tri, __global Real* in_src_tri,
-    int nq_rho, __global Real* rho_qx, __global Real* rho_qw,
-    int nq_theta, __global Real* theta_qx, __global Real* theta_qw,
-    Real eps, Real G, Real nu, int flip_obsn)
+<%def name="func_def(type, K)">
+KERNEL
+void ${type}_integrals${K.name}(GLOBAL_MEM Real* result, int chunk, 
+    GLOBAL_MEM Real* pts, 
+    GLOBAL_MEM Real* in_obs_tri, GLOBAL_MEM Real* in_src_tri,
+    int nq_rho, GLOBAL_MEM Real* rho_qx, GLOBAL_MEM Real* rho_qw,
+    int nq_theta, GLOBAL_MEM Real* theta_qx, GLOBAL_MEM Real* theta_qw,
+    Real eps, GLOBAL_MEM Real* params, int flip_obsn)
 </%def>
 
 <%def name="zero_output()">
@@ -96,10 +98,11 @@ void ${type}_integrals${k_name}(__global Real* result, int chunk,
     }
 </%def>
 
-<%def name="integral_setup(obs_tri_name, src_tri_name)">
+<%def name="integral_setup(K, obs_tri_name, src_tri_name)">
     const int cell_idx = get_global_id(0);
 
-    ${prim.constants()}
+    ${K.constants_code}
+
     Real obs_tri[3][3];
     Real src_tri[3][3];
     for (int i = 0; i < 3; i++) {
@@ -108,13 +111,13 @@ void ${type}_integrals${k_name}(__global Real* result, int chunk,
             src_tri[i][j] = ${src_tri_name}[i * 3 + j];
         }
     }
-    ${prim.tri_info("obs", "n")}
+    ${prim.tri_info("obs", "nobs", True)}
     if (flip_obsn == 1) {
         % for d in range(3):
-            n${dn(d)} *= -1;
+            nobs${dn(d)} *= -1;
         % endfor
     }
-    ${prim.tri_info("src", "l")}
+    ${prim.tri_info("src", "nsrc", K.needs_srcn)}
 </%def>
 
 <%def name="eval_hatvars()">
@@ -130,50 +133,48 @@ Real jacobian = rho_qw[ri] * rho * rhohigh * outer_jacobian;
 
 <%def name="setup_kernel_inputs()">
     % for which, ptname in [("obs", "x_no_offset_"), ("src", "y")]:
-        ${prim.basis(which + "")}
+        ${prim.basis(which)}
         ${prim.pts_from_basis(
-            ptname, which + "",
+            ptname, which,
             lambda b, d: which + "_tri[" + str(b) + "][" + str(d) + "]", 3
         )}
     % endfor
 
     % for dim in range(3):
-        Real x${dn(dim)} = x_no_offset_${dn(dim)} - eps * n${dn(dim)};
+        Real x${dn(dim)} = x_no_offset_${dn(dim)} - eps * nobs${dn(dim)};
     % endfor
 
     Real Dx = yx - xx;
     Real Dy = yy - xy; 
     Real Dz = yz - xz;
     Real r2 = Dx * Dx + Dy * Dy + Dz * Dz;
+    
+    Real Karr[9];
 </%def>
 
 <%def name="add_to_sum()">
-    % for d_obs in range(3):
-        % for d_src in range(3):
-            {
-                Real kernel_val = jacobian * K${d_obs}${d_src};
-                % for b_obs in range(3):
-                    % for b_src in range(3):
-                        {
-                            int idx = ${prim.temp_result_idx(d_obs, d_src, b_obs, b_src)};
-                            Real add_to_sum = kernel_val * obsb${b_obs} * srcb${b_src};
-                            Real y = add_to_sum - kahanC[idx];
-                            Real t = sum[idx] + y;
-                            kahanC[idx] = (t - sum[idx]) - y;
-                            sum[idx] = t;
-                        }
-                    % endfor
-                % endfor
+    for (int d_obs = 0; d_obs < 3; d_obs++) {
+        for (int d_src = 0; d_src < 3; d_src++) {
+            Real kernel_val = jacobian * Karr[d_obs * 3 + d_src];
+            for (int b_obs = 0; b_obs < 3; b_obs++) {
+                for (int b_src = 0; b_src < 3; b_src++) {
+                    int idx = b_obs * 27 + d_obs * 9 + b_src * 3 + d_src;
+                    Real add_to_sum = obsb[b_obs] * srcb[b_src] * kernel_val;
+                    Real y = add_to_sum - kahanC[idx];
+                    Real t = sum[idx] + y;
+                    kahanC[idx] = (t - sum[idx]) - y;
+                    sum[idx] = t;
+                }
             }
-        % endfor
-    % endfor
+        }
+    }
 </%def>
 
-<%def name="coincident_integrals(k_name)">
-${func_def("coincident", k_name)}
+<%def name="coincident_integrals(K)">
+${func_def("coincident", K)}
 {
     ${zero_output()}
-    ${integral_setup("in_obs_tri", "in_src_tri")}
+    ${integral_setup(K, "in_obs_tri", "in_src_tri")}
     ${eval_hatvars()}
 
     for (int oti = 0; oti < nq_theta; oti++) {
@@ -214,7 +215,7 @@ ${func_def("coincident", k_name)}
             Real srcyhat = obsyhat + rho * sintheta;
 
             ${setup_kernel_inputs()}
-            ${prim.tensor_kernels(k_name)}
+            ${K.tensor_code}
             ${add_to_sum()}
         }
     }
@@ -225,11 +226,11 @@ ${func_def("coincident", k_name)}
 }
 </%def>
 
-<%def name="adjacent_integrals(k_name)">
-${func_def("adjacent", k_name)}
+<%def name="adjacent_integrals(K)">
+${func_def("adjacent", K)}
 {
     ${zero_output()}
-    ${integral_setup("in_obs_tri", "in_src_tri")}
+    ${integral_setup(K, "in_obs_tri", "in_src_tri")}
     ${eval_hatvars()}
 
     for (int oti = 0; oti < nq_theta; oti++) {
@@ -265,7 +266,7 @@ ${func_def("adjacent", k_name)}
             Real srcyhat = rho * sintheta;
 
             ${setup_kernel_inputs()}
-            ${prim.tensor_kernels(k_name)}
+            ${K.tensor_code}
             ${add_to_sum()}
         }
     }
@@ -279,7 +280,7 @@ ${func_def("adjacent", k_name)}
 
 ${prim.geometry_fncs()}
 
-% for k_name in ['U', 'T', 'A', 'H']:
-${coincident_integrals(k_name)}
-${adjacent_integrals(k_name)}
+% for k_name, K in elastic_kernels.items():
+${coincident_integrals(K)}
+${adjacent_integrals(K)}
 % endfor

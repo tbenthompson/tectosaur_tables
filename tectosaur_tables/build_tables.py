@@ -23,7 +23,7 @@ class TableParams:
         self.wts = wts
 
         # FOR A MIN ANGLE OF 10 DEGREES
-        self.min_angle = 10
+        self.min_angle = 10.0
         self.psi = 0.5 * np.tan(np.deg2rad(self.min_angle))
         self.minlegalA = 0.0160559624778
         self.minlegalB = 0.0881595061826

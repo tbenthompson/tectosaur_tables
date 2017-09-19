@@ -1,14 +1,17 @@
 import os
 import numpy as np
-import tectosaur.util.gpu as gpu
 import tectosaur.util.quadrature as quad
+
+import tectosaur.util.gpu as gpu
 from tectosaur.util.timer import Timer
 
 import cppimport
-adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate').adaptive_integrate
+adaptive_integrate = cppimport.imp('tectosaur_tables.adaptive_integrate')
 
 float_type = np.float64
-def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, flip_obsn, chunk):
+gpu_float_type = gpu.np_to_c_type(float_type)
+block_size = 1
+def make_gpu_integrator(type, K, obs_tri, src_tri, eps, params, rho_q, theta_q, flip_obsn, chunk):
     this_dir = os.path.dirname(os.path.realpath(__file__))
 
     module = gpu.load_gpu('kernels.cl', tmpl_dir = this_dir, tmpl_args = dict())
@@ -19,6 +22,7 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
     gpu_theta_qw = gpu.to_gpu(theta_q[1].flatten(), float_type)
     gpu_obs_tri = gpu.to_gpu(np.array(obs_tri).flatten(), float_type)
     gpu_src_tri = gpu.to_gpu(np.array(src_tri).flatten(), float_type)
+    gpu_params = gpu.to_gpu(np.array(params), float_type)
 
     def integrand(x):
         t = Timer(silent = True)
@@ -32,13 +36,13 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
             gpu_pts = gpu.to_gpu(x[start_idx:end_idx,:], float_type)
             gpu_result = gpu.empty_gpu((n_items, 81), float_type)
             fnc(
-                gpu.gpu_queue, (n_items,), None,
-                gpu_result.data, np.int32(chunk), gpu_pts.data,
-                gpu_obs_tri.data, gpu_src_tri.data,
-                np.int32(rho_q[0].shape[0]), gpu_rho_qx.data, gpu_rho_qw.data,
-                np.int32(theta_q[0].shape[0]), gpu_theta_qx.data, gpu_theta_qw.data,
-                float_type(eps), float_type(sm), float_type(pr),
-                np.int32(flip_obsn)
+                gpu_result, np.int32(chunk), gpu_pts,
+                gpu_obs_tri, gpu_src_tri,
+                np.int32(rho_q[0].shape[0]), gpu_rho_qx, gpu_rho_qw,
+                np.int32(theta_q[0].shape[0]), gpu_theta_qx, gpu_theta_qw,
+                float_type(eps), gpu_params,
+                np.int32(flip_obsn),
+                grid = (n_items,1,1), block = (block_size,1,1)
             )
             out[start_idx:end_idx] = gpu_result.get()
 
@@ -55,7 +59,7 @@ def make_gpu_integrator(type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, 
     integrand.total_n_x = 0
     return integrand
 
-def general_integral(tol, type, K, obs_tri, src_tri, eps, sm, pr, rho_order, theta_order):
+def general_integral(tol, type, K, obs_tri, src_tri, eps, params, rho_order, theta_order):
     rho_gauss = quad.gaussxw(rho_order)
     rho_q = quad.sinh_transform(rho_gauss, -1, eps * 2)
     theta_q = quad.gaussxw(theta_order)
@@ -64,7 +68,7 @@ def general_integral(tol, type, K, obs_tri, src_tri, eps, sm, pr, rho_order, the
     for chunk in range(n_chunks):
         chunk_res = adaptive_integrate.integrate(
             make_gpu_integrator(
-                type, K, obs_tri, src_tri, eps, sm, pr, rho_q, theta_q, chunk
+                type, K, obs_tri, src_tri, eps, params, rho_q, theta_q, chunk
             ),
             [0,0], [1,1], tol
         )
@@ -72,8 +76,8 @@ def general_integral(tol, type, K, obs_tri, src_tri, eps, sm, pr, rho_order, the
         res += chunk_res[0]
     return np.array(res)
 
-def coincident_integral(tol, K, tri, eps, sm, pr, rho_order, theta_order):
-    return general_integral(tol, 'coincident', K, tri, tri, eps, sm, pr, rho_order, theta_order)
+def coincident_integral(tol, K, tri, eps, params, rho_order, theta_order):
+    return general_integral(tol, 'coincident', K, tri, tri, eps, params, rho_order, theta_order)
 
-def adjacent_integral(tol, K, obs_tri, src_tri, eps, sm, pr, rho_order, theta_order, flip_obsn):
-    return general_integral(tol, 'adjacent', K, obs_tri, src_tri, eps, sm, pr, rho_order, theta_order)
+def adjacent_integral(tol, K, obs_tri, src_tri, eps, params, rho_order, theta_order, flip_obsn):
+    return general_integral(tol, 'adjacent', K, obs_tri, src_tri, eps, params, rho_order, theta_order)

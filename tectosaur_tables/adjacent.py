@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from tectosaur.interpolate import to_interval
-from tectosaur.table_lookup import adjacent_interp_pts_wts
-from tectosaur.table_params import min_intersect_angle
+from tectosaur.nearfield.interpolate import to_interval
+from tectosaur.nearfield.table_lookup import adjacent_interp_pts_wts
+from tectosaur.nearfield.table_params import min_intersect_angle
 
 from tectosaur_tables.fixed_integrator import adjacent_fixed
 from tectosaur_tables.build_tables import fixed_quad, TableParams, take_limits, get_eps
@@ -30,8 +30,9 @@ def eval_tri_integral(obs_tri, src_tri, pr, p, flip_obsn = False):
     last_orders = None
     for eps in epsvs:
         print('running: ' + str((np.arccos(src_tri[2][1] / p.psi), pr, eps)))
+        params = [1.0, pr]
         I = lambda n_outer, n_rho, n_theta: adjacent_fixed(
-            n_outer, p.K, obs_tri, src_tri, eps, 1.0, pr, n_rho, n_theta, flip_obsn
+            n_outer, p.K, obs_tri, src_tri, eps, params, n_rho, n_theta, flip_obsn
         )
         res, last_orders = fixed_quad(I, p, last_orders)
         integrals.append(res)

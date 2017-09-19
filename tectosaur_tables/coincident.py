@@ -29,8 +29,9 @@ def eval_tri_integral_no_limit(tri, pr, p):
     last_orders = None
     for eps in epsvs:
         print('running: ' + str((tri[2][0], tri[2][1], pr, eps)))
+        params = [1.0, pr]
         I = lambda n_outer, n_rho, n_theta: coincident_fixed(
-            n_outer, p.K, tri, eps, 1.0, pr, n_rho, n_theta
+            n_outer, p.K, tri, eps, params, n_rho, n_theta
         )
         res, last_orders = fixed_quad(I, p, last_orders)
         integrals.append(res)
